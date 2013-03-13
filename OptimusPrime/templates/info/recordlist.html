@@ -1,0 +1,33 @@
+{/if $schools /}
+<form action="/info/input/recordlist" method="post">
+<select name="school" onChange="form.submit()">
+<option></option>
+{/section name=id loop=$schools /}
+<option value="{/$schools[id].id/}">{/$schools[id].school_name/}</option>
+{//section/}
+</select>
+</form>
+{//if/}
+{/if $schooltitle/}
+<h1 style="text-align:left">{/$schooltitle/}</h1>
+<table style="width:90%;border:1px solid #FFF" >
+<tr>
+    	<td>校车卡ID</td>
+    	<td>姓名</td>
+    	<td>年级</td>
+    	<td>班级</td>
+    	<td>家庭住址</td>
+    	<td>家长手机</td>
+</tr>
+{/foreach $records as $var/}
+	<tr>
+    	<td>{/$var.sid/}</td>
+    	<td>{/$var.name/}</td>
+    	<td>{/$var.grade/}</td>
+    	<td>{/$var.class/}</td>
+    	<td>{/$var.address/}</td>
+    	<td>{/$var.parent_phone/}</td>
+	</tr>
+{//foreach/}
+</table>
+{//if/}

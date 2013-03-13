@@ -1,0 +1,96 @@
+<script src="/js/jquery.form.js"></script>
+
+{/if $schools /}
+<form action="/info/input/index" method="post">
+<select name="school" onChange="form.submit()">
+<option></option>
+{/section name=id loop=$schools /}
+<option value="{/$schools[id].id/}">{/$schools[id].school_name/}</option>
+{//section/}
+</select>
+</form>
+{//if/}
+{/if $schooltitle/}
+<h1 style="text-align:left">{/$schooltitle/}</h1>
+<style>
+.inputform{}
+.inputform ul{
+	list-style:none;
+	height:30px;
+	padding-top:3px
+}
+.leftli{
+	background-color:#DDD;
+	text-align:right;
+	padding:4px;
+	width:20%;
+	float:left;
+	height:22px;
+	font-size:18px
+}
+.rightli{
+	text-align:left;
+	padding-left:4px;
+	width:60%;
+	float:left
+}
+.inputform input{
+	wdith:200px;
+	height:22px;
+	font-size:18px
+}
+
+</style>
+<script>
+	$(document).ready(function() { 
+		var option = {
+			target: '#message',
+			url:'/info/input/input/',
+			type:'post',
+			clearForm: true
+		};
+		$('#inputform').ajaxForm(option); 
+	});
+	
+</script>
+<div style="width:90%">
+	<form method="post" class="inputform" id="inputform">
+    <input name="school_id" type="hidden" value="{/$school_id/}">
+    <ul>
+    	<li class="leftli">学生姓名</li>
+        <li class="rightli"><input type="text" name="name"></li>
+    </ul>
+    <ul>
+    	<li class="leftli">卡号</li>
+        <li class="rightli"><input type="text" name="sid"></li>
+    </ul>
+    <ul>
+    	<li class="leftli">年级</li>
+        <li class="rightli"><select name="grade" style="width:200px;height:22px;font-size:18px;margin:3px;">
+        <option value="1">一年级</option>
+        <option value="2">二年级</option>
+        <option value="3">三年级</option>
+        <option value="4">四年级</option>
+        <option value="5">五年级</option>
+        <option value="6">六年级</option>
+        </select></li>
+    </ul>
+    <ul>
+    	<li class="leftli">班级</li>
+        <li class="rightli"><input type="text" name="class"></li>
+    </ul>
+    <ul>
+    	<li class="leftli">家庭住址</li>
+        <li class="rightli"><input type="text" name="address"></li>
+    </ul>
+    <ul>
+    	<li class="leftli">家长手机</li>
+        <li class="rightli"><input type="text" name="parent_phone"></li>
+    </ul>
+    <ul><li id="message"></li></ul>
+    <ul><li style="text-align:right;padding:4px;width:20%;float:left;height:22px;"></li>
+    	<li class="rightli"><input type="submit" value="提交" style="appearance:button"></li>
+    </ul>
+    </form>
+</div>
+{//if/}

@@ -1,0 +1,30 @@
+<script src="/js/jquery.form.js"></script>
+<script>
+	$(document).ready(function() { 
+		var option = {
+			target: '#msg',
+			url:'/user/index/chgpwd/',
+			type:'post',
+			clearForm: true,
+			success:function (){ $('#submit').attr('disabled','disabled')}
+		};
+		$('#pwdform').ajaxForm(option); 
+	});
+</script>
+<style>
+.chgpwd li{
+	list-style:none;
+	padding:5px;
+	text-align:center;
+}
+</style>
+<div style="float:left;width:300px;">
+<div style="text-align:center;width:300px">修改密码</div>
+	<ul class="chgpwd"><form id="pwdform">
+    	<li>旧密码: <input name="oldpwd" type="password" /></li>
+        <li>新密码: <input name="newpwd1" type="password" /></li>
+        <li>确认新密码: <input name="newpwd2" type="password" /></li>
+        <li><span id="msg"></span></li>
+        <li><input name="submit" type="submit" value="确认修改" id='submit'></li></form>
+    </ul>
+</div>

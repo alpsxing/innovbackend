@@ -1,0 +1,45 @@
+<script language="javascript" type="text/javascript">
+$(document).ready(function(){ 
+   $('#navi').hoverAccordion({ 
+        keepHeight: true, 
+		  activateItem: 3, 
+		  speed: 'fast' 
+  }); 
+});
+</script>
+<div style="float:left;width:15%">
+<ul id="navi"> 
+   <!--li class="ca-menu"><a href="#">
+        <div class="ca-content">
+            <h2 class="ca-main">信息管理</h2>
+        </div> </a>
+      <ul> 
+        <li><a href="/info/input" target="_self">信息录入</a></li>
+        <li><a href="/info/input/import/" target="_self">批量信息导入</a></li>
+      	<li><a href="/info/input/recordlist/" target="_self">信息查询</a></li>
+      </ul> 
+   </li> 
+   <li class="ca-menu"><a>
+            <div class="ca-content">
+                <h2 class="ca-main">用户管理</h2>
+            </div></a>
+      <ul> 
+           <li><a href="/auth/">权限管理</a></li>
+           <li><a href="/user/index/chgpwd" target="_self">修改密码</a></li>
+            
+      </ul> 
+   </li-->
+   {/foreach $menu as $m/}
+   	<li class="ca-menu"><a href="#">
+        <div class="ca-content">
+            <h2 class="ca-main">{/$m.father.name/}</h2>
+        </div> </a>
+      <ul>
+      {/foreach $m.children as $sub/}
+        <li><a href="/{/$sub.module/}/{/$sub.controller/}/{/$sub.action/}/" target="_self" style="text-align:center;vertical-align:middle">{/$sub.name/}</a></li>
+      {//foreach/}
+      </ul> 
+   </li>
+   {//foreach/} 
+</ul>
+</div>

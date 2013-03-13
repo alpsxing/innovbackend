@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<title>加载地图示例</title> 
+<script language="javascript" src="http://mapabc.21com.com:8081/webapi/auth.json?t=javascriptmap&v=3.1.1&key=aab109b3c3f07d0ad0c79457d57eb028fea9b946c1aa04bf421e5b38c3d18933e9994d3f289def65"></script>
+<script type="text/javascript">
+var mapObj,toolbar,overview,scale;
+function mapInit()
+{
+	var opt = {
+		level:13,//初始地图视野级别
+		center:new MMap.LngLat(116.397428,39.90923),//设置地图中心点	
+		doubleClickZoom:false,//双击放大地图
+		scrollwheel:true//鼠标滚轮缩放地图
+		
+	}
+	mapObj = new MMap.Map("iCenter",opt);
+	mapObj.plugin(["MMap.ToolBar","MMap.OverView","MMap.Scale"],function()
+	{ 
+		toolbar = new MMap.ToolBar();
+		toolbar.autoPosition=false; //加载工具条 
+		mapObj.addControl(toolbar);  	
+		overview = new MMap.OverView(); //加载鹰眼
+		mapObj.addControl(overview);  	
+		scale = new MMap.Scale(); //加载比例尺
+		mapObj.addControl(scale);
+	}); 
+mapObj.bind("click",function(e){
+	alert(mapObj.getZoom());
+});
+}
+</script>
+</head>
+<body onload="mapInit();">
+<input type="button" id="show-btn" value="Gimme a Map" />
+<div style="width:500px; height:500px;"> 
+  <div id="iCenter" style="width:700px; height:500px;"></div> 
+</div> 
+
+</body> 
+</html>  

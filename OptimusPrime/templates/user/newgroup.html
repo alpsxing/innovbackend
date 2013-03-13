@@ -1,0 +1,133 @@
+<script src="/js/jquery.checktree.0.3b1.min.js"></script>
+<script src="/js/jquery.form.js"></script>
+
+<script>
+	$(document).ready(function() {
+		
+		//$("ul.tree").checkTree({ });
+		
+		var option2 = {
+			target: '#message2',
+			url:'/user/index/newgroup/',
+			type:'post',
+			clearForm: false
+		};
+		$('#inputform2').ajaxForm(option2); 
+	});
+	
+</script>
+<style>
+p {
+	margin: 5px 15px;
+}
+ul {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+ul.tree, ul.tree * {
+	list-style-type: none;
+	margin: 0;
+	padding: 0 0 5px 0;
+}
+ul.tree img.arrow {
+	padding: 2px 0 0 0;
+	border: 0;
+	width: 20px;
+}
+ul.tree li {
+	padding: 4px 0 0 0;
+}
+ul.tree li ul {
+	padding: 0 0 0 20px;
+	margin: 0;
+}
+ul.tree label {
+	cursor: pointer;
+	font-weight: bold;
+	padding: 2px 0;
+}
+ul.tree label.hover {
+	color: red;
+}
+ul.tree li .arrow {
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	float: left;
+	background: transparent no-repeat 0 4px;
+}
+ul.tree li .collapsed {
+	background-image: url(/images/collapsed.gif);
+}
+ul.tree li .expanded {
+	background-image: url(/images/expanded.gif);
+}
+
+ul.tree li .checkbox {
+	width: 20px;
+	height: 18px;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	float: left;
+	background: url(/images/check0.gif) no-repeat 0 0px;
+}
+ul.tree li .checked {
+	background-image: url(/images/check2.gif);
+}
+ul.tree li .half_checked {
+	background-image: url(/images/check1.gif);
+}
+</style>
+<div style="padding-left:50px;width:280px">
+<!--form id="inputform" method="post">
+	<ul>
+    	<li>用户组名 (规则：以学校名称开头)</li>
+        <li><input type="text" name="groupname"></li>
+    </ul>
+    <ul>
+    	<li>权限 (使用用户组划分)</li>
+        <li>
+        	<ul class="tree">
+            {/$tree/}
+            {/foreach $groups as $group/}
+            	<li>
+                    <input type="checkbox" name="groups[]" value="{/$group.group_name/}" style="width:50px">
+                    <label>{/$group.group_name/}</label>
+                    <ul>
+                        {/foreach $group.function as $function/}
+                        	<li>{/$function.name/}</li>
+                        {//foreach/}
+                    </ul>
+                </li>
+            {//foreach /}
+        	</ul>
+        </li>
+    </ul>
+    <ul><li id="message"></li></ul>
+    <ul><li><input type="submit"></li></ul>
+</form><br><br-->
+<form id="inputform2" method="post">
+	<ul>
+    	<li>用户组名 (规则：以学校名称开头)</li>
+        <li><input type="text" name="groupname"></li>
+    </ul>
+    <ul>
+    	<li>权限 (使用所列权限创建新组)</li>
+        <li>
+        	<ul class="tree">
+            {/foreach $controllerlist as $controller/}
+            	<li>
+                    <input type="checkbox" name="controllers[]" value="{/$controller.id/}" style="width:50px">
+                    <label>{/$controller.name/}</label>
+                </li>
+            {//foreach /}
+        	</ul>
+        </li>
+    </ul>
+    <ul><li id="message2"></li></ul>
+    <ul><li><input type="submit"></li></ul>
+</form>
+</div>

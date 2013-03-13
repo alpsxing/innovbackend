@@ -1,0 +1,65 @@
+<a href="/import_template.xlsx" target="_blank">范例文件</a>
+{/if $schools /}
+<form action="/info/input/import" method="post">
+<select name="school" onChange="form.submit()">
+<option></option>
+{/section name=id loop=$schools /}
+<option value="{/$schools[id].id/}">{/$schools[id].school_name/}</option>
+{//section/}
+</select>
+</form>
+{//if/}
+{/if $schooltitle/}
+<h1 style="text-align:left">{/$schooltitle/}</h1>
+<script type="text/javascript" src="/js/ajaxfileupload.js"></script>
+<script type="text/javascript">
+	function ajaxFileUpload()
+	{
+		$("#loading")
+		.ajaxStart(function(){
+			$(this).show();
+		})
+		.ajaxComplete(function(){
+			$(this).hide();
+		});
+
+		$.ajaxFileUpload
+		(
+			{
+				url:'/info/input/upload/',
+				secureuri:false,
+				fileElementId:'fileToUpload',
+				dataType: 'json',
+				data:{school_id:'{/$school_id/}'},
+				success: function (data, status)
+				{
+					if(typeof(data.error) != 'undefined')
+					{
+						if(data.error != '')
+						{
+							alert(data.error);
+						}else
+						{
+							//alert(data);
+							$('#contents').html(data.msg);
+						}
+					}
+				},
+				error: function (data, status, e)
+				{
+					alert(e);
+				}
+			}
+		)
+		
+		return false;
+
+	}
+	</script>
+    <img id="loading" src="/images/loading.gif" style="display:none;">
+    <form name="form" action="" method="POST" enctype="multipart/form-data">
+        <input id="fileToUpload" type="file" size="45" name="fileToUpload" class="input">
+        <button class="button" id="buttonUpload" onClick="return ajaxFileUpload();">Upload</button>
+    </form>
+    <div id="contents"></div>
+{//if/}
