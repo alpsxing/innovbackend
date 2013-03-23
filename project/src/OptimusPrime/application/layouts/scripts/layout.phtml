@@ -1,0 +1,53 @@
+<?php echo $this->doctype() ?>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <?php echo $this->headTitle() ?>
+        <?php echo $this->headLink() ?>
+        <?php echo $this->headScript() ?>
+    </head>
+    <body id="main-body" class="easyui-layout">
+        <!--        Layout-region-north: main menu-->
+        <div data-options="region:'north',border:false" style="height:38px;background:rgb(217,231,255);padding:5px">
+            <div class="easyui-layout" data-options="fit:true,border:false">
+                <div data-options="region:'west',border:false" style="background:rgb(217,231,255);width:80px;padding:0px;">
+                    <img src="/images/logo.jpg" alt="" border="0" height="23" width="75"/>
+                </div>
+                <div data-options="region:'center',fit:true,border:false" style="background:rgb(217,231,255);padding:0px;">
+                    <?php foreach ($this->dbmenu as $dbitem): ?>
+                        <?php if ($dbitem['tree_parent'] === '0'): ?>
+                            <?php echo '<a href="' . $this->baseUrl() . '/' . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . '/' . $this->escape($dbitem['action']) . '" class="easyui-linkbutton" data-options="plain:true">'; ?>
+                            <?php echo $this->escape($dbitem['name']) ?>
+                            </a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <div data-options="region:'east',border:false" style="background:rgb(217,231,255);width:200px;padding:0px;">
+                    登录用户：<?php echo $this->escape($this->role); ?>
+                    <?php echo '<a href="' . $this->baseUrl() . '/authen/login/logout' . '" class="easyui-linkbutton" data-options="plain:true">'; ?>
+                    <?php echo $this->escape("退出") ?> 
+                    </a>
+                </div>
+            </div>
+        </div>
+        <?php foreach ($this->dbmenu as $dbitem): ?>
+            <?php if ($dbitem['id'] === $this->module_id): ?>
+                <?php echo '<div data-options="' . "region:'west',title:'功能列表',split:true,href:'" . $this->baseUrl() . "/" . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . "/westmenu'" . '"  style="width:200px;padding:0px;">'; ?>
+            </div>
+        <?php endif; ?>
+    <?php endforeach; ?>
+    <!--        Only monitor mudule need sourth region: $this->module_id === '1' means monitor module-->
+    <?php if ($this->module_id === '1'): ?>
+        <?php foreach ($this->dbmenu as $dbitem): ?>
+            <?php if ($dbitem['id'] === $this->module_id): ?>
+                <?php echo '<div data-options="' . "title:'实时信息',region:'south',split:true,href:'" . $this->baseUrl() . "/" . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . "/southmenu'" . '"  style="height:200px;padding:0px;">'; ?>
+            </div>
+        <?php endif; ?>
+    <?php endforeach; ?>
+<?php endif; ?>
+<!--            The main content-->
+<div id="main-content" data-options="region:'center'">
+    <?php echo $this->layout()->content ?>
+</div>
+</body>
+</html>

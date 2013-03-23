@@ -1,0 +1,39 @@
+<script type="text/javascript">
+    //$('#south-tabs').show();
+    $(function() {
+        $('#vehicle-position-table').datagrid({
+            url: GetBaseUrl() + '/monitor/information/vehicleposition',
+            fit: true,
+            columns: [[
+                    {field: 'code', title: '车辆', width: 100},
+                    {field: 'name', title: 'Name', width: 100},
+                    {field: 'price', title: '位置', width: 100, align: 'right'}
+                ]],
+            onRowContextMenu: function(e, field) {
+                e.preventDefault();
+                $('#south-table-menu').menu('show', {
+                    left: e.pageX,
+                    top: e.pageY
+                });
+            }
+
+        });
+    });
+</script>
+
+<!--context menu for table vehicle-position-table-->
+<div id="south-table-menu" class="easyui-menu" style="width:120px;">
+    <div onclick="xxx();">删除</div>
+    <div onclick="tyyy();">不删除</div>
+</div>
+
+<div id="south-tabs" class="easyui-tabs" data-options="fit:true">  
+    <div title="车辆位置信息" data-options="iconCls:'icon-reload'" style="padding:5px;">  
+        <table id="vehicle-position-table" class="easyui-datagrid" data-options="singleSelect:true,fitColumns:true">
+        </table>
+    </div>  
+    <div title="命令下发信息" data-options="iconCls:'icon-reload'" style="overflow:auto;padding:5px;">  
+    </div>  
+    <div title="报警信息" data-options="iconCls:'icon-reload'" style="padding:5px;">  
+    </div>  
+</div>  

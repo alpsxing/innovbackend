@@ -1,0 +1,78 @@
+<script type="text/javascript">
+    $(function() {
+        $.extend($.fn.validatebox.defaults.rules, {
+            equals: {
+                validator: function(value, param) {
+                    return value == $(param[0]).val();
+                },
+                message: '两次输入的密码不匹配，请重新输入'
+            },
+            minRegularLength: {
+                validator: function(value, param) {
+                    return (value.length >= 6) && (/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/.test(value));
+                },
+                message: '新密码长度至少为6位,必须包含字母和数字'
+            }
+        });
+        $("#changePwd_OldPwd").validatebox({
+            required: true,
+            missingMessage: '旧密码不能为空'
+        });
+        $("#changePwd_NewPwd").validatebox({
+            required: true,
+            validType: 'minRegularLength',
+            missingMessage: '新密码不能为空'
+        });
+        $("#changePwd_NewRePwd").validatebox({
+            required: true,
+            validType: 'equals["#changePwd_NewPwd"]',
+            missingMessage: '确认密码不能为空'
+        });
+        $("#btnClear").linkbutton({iconCls: 'icon-remove'});
+        $("#btnSave").linkbutton({iconCls: 'icon-save'});
+        $("#btnClear").bind('click', function() {
+            $("#changePwd").form("clear");
+        });
+        $("#btnSave").bind('click', function() {
+            $("#changePwd").form("submit", {
+                url: GetBaseUrl() + '/authen/login/dochgpwd',
+                onSubmit: function() {
+                    return $(this).form("validate");
+                },
+                success: function(result) {
+                    try {
+                        
+                        var result = JSON.parse(result);
+                        if (!result.status) {
+                            showAlertMessage(result.msg, 2);
+
+                        } else {
+                            showSuccessMsgbox(result.msg);
+                        }
+                    } catch (err) {
+                        showAlertMessage("操作出现异常，可能是无相关权限引发该异常，请检查是否有权限进行此操作", 2);
+                    }
+                }
+            });
+        });
+    });
+
+</script>
+
+<form id="changePwd" method="post" action="">
+    <div class="fitem">
+        <label> 旧密码:</label>
+        <input id="changePwd_OldPwd" name="changePwd_OldPwd" type="password"/>
+    </div>
+    <div class="fitem">
+        <label> 新密码:</label>
+        <input id="changePwd_NewPwd" name="changePwd_NewPwd" type="password"/>
+    </div>
+    <div class="fitem">
+        <label> 新密码确认:</label>
+        <input id="changePwd_NewRePwd" name="changePwd_NewRePwd" type="password"/>
+    </div>
+    <a id="btnSave" href="#" class="easyui-linkbutton">保存</a>
+    <a id="btnClear" href="#" class="easyui-linkbutton">重填</a>
+</form>
+

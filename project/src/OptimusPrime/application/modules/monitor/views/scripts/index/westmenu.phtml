@@ -1,0 +1,64 @@
+<script type="text/javascript">
+    $(function() {
+        $('input[idd="tree-search-input"]').searchbox({
+            searcher: function(value, name) {
+                alert(value + "," + name)
+            },
+            width: 150,
+            menu: '#tree-search-menu',
+            prompt: '搜索'
+        });
+
+        $('ul.easyui-tree').each(function() {
+            var $tmp = $(this);
+            $(this).tree({
+                checkbox: true,
+                onContextMenu: function(e, node) {
+                    e.preventDefault();
+                    // select the node
+                    $tmp.tree('select', node.target);
+                    // display context menu
+                    $('#tree-context-menu').menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                }
+            });
+        });
+    });
+    function sendcmd() {
+        $('#send-cmd-dialog').dialog({
+            width: 900,
+            height: 450,
+            title: '下发命令',
+            href: GetBaseUrl() + '/monitor/index/sendcmd'
+        });
+    }
+</script>
+<div class="easyui-accordion" data-options="fit:true">
+    <?php foreach ($this->dbmenu as $dbitem): ?>
+        <?php if ($dbitem['tree_parent'] === $this->module_id): ?>
+            <?php echo '<div  title="' . $dbitem['name'] . '" data-options="iconCls:' . "'icon-ok'" . '" style="overflow:auto;padding:10px;">'; ?>
+            <div>
+                <input idd="tree-search-input"></input>
+            </div>        
+            <?php echo '<ul class="easyui-tree" data-options="url:' . "'" . "/" . $this->baseUrl() . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . '/' . $this->escape($dbitem['action']) . "'" . '"></ul>' ?>
+        </div>
+    <?php endif; ?>
+<?php endforeach; ?>
+</div>
+<!--The context menu for vehicle list, all tree using same one now-->
+<div id="tree-context-menu" class="easyui-menu" style="width:120px;">
+    <div onclick="sendcmd();">下发命令</div>
+    <div onclick="track();">跟踪车辆</div>
+    <div onclick="playback();">轨迹回放</div>
+    <div onclick="midify();">修改车辆</div>
+    <!--The dialog for send command-->
+    <div id="send-cmd-dialog" class="easyui-dialog" data-options="resizable:true"></div>
+</div>
+<div id="tree-search-menu" style="width:50px">
+    <div data-options="name:'all'">全部</div>
+    <div data-options="name:'online'">在线</div>
+    <div data-options="name:'offline'">离线</div>
+</div>
+

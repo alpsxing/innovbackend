@@ -1,0 +1,28 @@
+<script type="text/javascript">
+    //Pass href?
+    function admin_cmd(href, name) {
+        $('#main-content').panel({
+            title: name,
+            href: GetBaseUrl() + "/" + href
+        });
+    }
+</script>
+<div id="admin-west-menu" class="easyui-accordion" data-options="fit:true,selected:true">
+    <?php foreach ($this->dbmenu as $dbitem): ?>
+        <?php if ($dbitem['tree_parent'] === $this->module_id): ?>
+            <?php echo '<div  title="' . $dbitem['name'] . '" data-options="iconCls:' . "'icon-ok'" . '" style="overflow:auto;padding:10px;">'; ?>
+            <ul>
+                <?php foreach ($this->dbmenu as $subdbitem): ?>
+                    <?php if ($subdbitem['tree_parent'] === $dbitem['id']): ?>
+                        <li>
+                            <?php echo '<a href="#" class="easyui-linkbutton" data-options="plain:true" onclick="admin_cmd(' . "'" . $this->baseUrl() . "/" . $this->escape($subdbitem['module']) . "/" . $this->escape($subdbitem['controller']) . "/" . $this->escape($subdbitem['action']) . "','" . $this->escape($subdbitem['name']) . "'" . ')">'; ?>
+                            <?php echo $this->escape($subdbitem['name']) ?>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+<?php endforeach; ?>
+</div>
