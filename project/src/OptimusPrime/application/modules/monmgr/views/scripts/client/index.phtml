@@ -1,4 +1,48 @@
-<br /><br />
-<div id="view-content">
-	<p>View script for controller <b>Client</b> and script/action name <b>index</b></p>
+<script language="javascript" type="text/javascript">
+    /////////////////////////////////////////////////////////////////////////////
+    //main
+    //////////////////////////////////////////////////////////////////////////////
+    $(function () {
+        var $grid = $('#client_list_table');
+        var editurl = GetBaseUrl() + '/monmgr/client/update';
+        $grid.datagrid({
+            url: GetBaseUrl() + '/monmgr/client/list',
+            fitColumns: true,
+            nowrap: false,
+            idField: 'id',
+            rownumbers: true,
+            //checkOnSelect: true,
+            singleSelect: true,
+            pagination: true,
+            pageNumber: 1,
+            pageSize: 20,
+            //title: "客户管理",
+
+            columns: [[
+                { field: 'id', hidden: true },
+                
+                { field: 'name', title: '名称', width: 100, editor:
+                    {
+                        type: 'validatebox',
+                        options: {
+                            required: true
+                        }
+                    }
+                },
+                { field: 'remark', title: '备注', width: 300, editor:
+                    {
+                        type: 'text'
+                    }
+                }
+            ]],
+            onLoadSuccess:function (data) {
+                AddToolTip4GridField($grid, 'remark');
+            }
+        });
+        initTb4Grid($grid, editurl);
+    });
+</script>
+<div id="client_list_div">
+    <table id="client_list_table">
+    </table>
 </div>

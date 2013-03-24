@@ -122,7 +122,7 @@ class Authen_Model_Users {
 
 
     public function changePwd($userid, $newpwd) {
-        $sql = "UPDATE `users` SET `passwd` = md5(" . $newpwd . ") where `id` = " . $userid . " limit 1";
+        $sql = $this->_db->quoteInto("UPDATE `users` SET `passwd` = md5(" . $newpwd . ") where `id` = " . $userid . " limit 1");
         try {
             $this->_db->query($sql);
             return true;
@@ -200,7 +200,8 @@ class Authen_Model_Users {
         
         $select = $this->_db->select();
         $select->from('controllerlist')
-                ->where('menu>0');
+                ->where('menu>0')
+                ->order(array('tree_parent','menu'));
         $rawlist = $this->_db->fetchassoc($select);
         $this->_menulist = $rawlist;
     }

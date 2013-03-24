@@ -78,6 +78,7 @@ class Authen_Model_Verify extends Zend_Controller_Plugin_Abstract {
         $request->setControllerName($controller);
         $request->setActionName($action);
         $this->setModuleId2View($module);
+        
     }
     
     private function setModuleId2View($module) {

@@ -44,7 +44,7 @@ class Authen_Model_Acl extends Zend_Acl {
      * 获得登录用户的数据数据
      *
      */
-    public function getUserInfo() {
+    static public function getUserInfo() {
         $namespace = Zend_Auth::getInstance()->getStorage()->getNamespace();
         //用户认证失败则返回false
         if (isset($_SESSION[$namespace]['userInfo'])) {
