@@ -288,9 +288,7 @@ DROP TABLE IF EXISTS `device`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `device` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `province_id` int(11) DEFAULT NULL COMMENT '省份ID',
-  `city_id` int(11) DEFAULT NULL COMMENT '市县ID',
-  `provider_id` int(11) DEFAULT NULL COMMENT '供应商ID',
+  `region_id` int(11) DEFAULT NULL COMMENT '市县ID',
   `type_id` int(11) DEFAULT NULL,
   `serial_no` varchar(20) DEFAULT NULL COMMENT '终端ID，内部序列号，制造商自行定义',
   `phone_no` varchar(12) DEFAULT NULL,
@@ -314,7 +312,7 @@ CREATE TABLE `device` (
 
 LOCK TABLES `device` WRITE;
 /*!40000 ALTER TABLE `device` DISABLE KEYS */;
-INSERT INTO `device` VALUES (1,10,10,1,1,'1234567','13800138000',NULL,NULL,NULL,NULL,NULL,'2013-03-08 00:00:00',NULL,NULL,NULL,'1');
+INSERT INTO `device` VALUES (1,10,1,'1234567','13800138000',NULL,NULL,NULL,NULL,NULL,'2013-03-08 00:00:00',NULL,NULL,NULL,'1');
 /*!40000 ALTER TABLE `device` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -602,6 +600,7 @@ CREATE TABLE `device_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(40) NOT NULL,
   `name` varchar(45) DEFAULT NULL,
+  `provider_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -686,6 +685,32 @@ CREATE TABLE `group_rectangle_region` (
 LOCK TABLES `group_rectangle_region` WRITE;
 /*!40000 ALTER TABLE `group_rectangle_region` DISABLE KEYS */;
 /*!40000 ALTER TABLE `group_rectangle_region` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `operate_log`
+--
+
+DROP TABLE IF EXISTS `operate_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `operate_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `ip_addr` varchar(20) DEFAULT NULL,
+  `time` datetime DEFAULT NULL,
+  `content` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `operate_log`
+--
+
+LOCK TABLES `operate_log` WRITE;
+/*!40000 ALTER TABLE `operate_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `operate_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -865,6 +890,30 @@ LOCK TABLES `telephone_book` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `user_vehgroup`
+--
+
+DROP TABLE IF EXISTS `user_vehgroup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_vehgroup` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '行政区域ID',
+  `user_id` int(11) DEFAULT NULL,
+  `group_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_vehgroup`
+--
+
+LOCK TABLES `user_vehgroup` WRITE;
+/*!40000 ALTER TABLE `user_vehgroup` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_vehgroup` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `usergroups`
 --
 
@@ -927,8 +976,38 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin',1,'2013-03-07 17:00:00','202cb962ac59075b964b07152d234b70',NULL,NULL,NULL,NULL,'1','2013-03-23 23:12:02',1364051522,0,'S05CIPV30RSGFLEGNODDBFG2R6',1,'admin','');
+INSERT INTO `users` VALUES (1,'admin',1,'2013-03-07 17:00:00','202cb962ac59075b964b07152d234b70',NULL,NULL,NULL,NULL,'1','2013-03-24 19:30:02',1364124602,0,'S05CIPV30RSGFLEGNODDBFG2R6',1,'admin','');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `vehgroup`
+--
+
+DROP TABLE IF EXISTS `vehgroup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `vehgroup` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) NOT NULL,
+  `creater` int(11) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `user_count` int(11) DEFAULT NULL,
+  `vhc_count` int(11) DEFAULT NULL,
+  `remark` varchar(150) DEFAULT NULL,
+  `is_super_visible` bit(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `vehgroup`
+--
+
+LOCK TABLES `vehgroup` WRITE;
+/*!40000 ALTER TABLE `vehgroup` DISABLE KEYS */;
+INSERT INTO `vehgroup` VALUES (1,'测试组1',1,'2013-03-08 00:00:00',NULL,NULL,NULL,NULL),(2,'测试组2',1,'2013-03-08 00:00:00',NULL,NULL,NULL,NULL);
+/*!40000 ALTER TABLE `vehgroup` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1056,16 +1135,10 @@ DROP TABLE IF EXISTS `vehicle_group`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `vehicle_group` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) NOT NULL,
-  `creater` int(11) DEFAULT NULL,
-  `create_time` datetime DEFAULT NULL,
-  `min_pos_interval` int(11) DEFAULT NULL COMMENT '位置汇报最短间隔',
-  `max_pos_interval` int(11) DEFAULT NULL COMMENT '位置汇报最大间隔',
-  `user_count` int(11) DEFAULT NULL,
-  `vhc_count` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+  `vehicle_id` int(11) NOT NULL,
+  `group_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`vehicle_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1074,7 +1147,6 @@ CREATE TABLE `vehicle_group` (
 
 LOCK TABLES `vehicle_group` WRITE;
 /*!40000 ALTER TABLE `vehicle_group` DISABLE KEYS */;
-INSERT INTO `vehicle_group` VALUES (1,'测试组1',1,'2013-03-08 00:00:00',NULL,NULL,NULL,NULL),(2,'测试组2',1,'2013-03-08 00:00:00',NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `vehicle_group` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1209,4 +1281,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-03-23 23:29:15
+-- Dump completed on 2013-03-26  0:25:42
