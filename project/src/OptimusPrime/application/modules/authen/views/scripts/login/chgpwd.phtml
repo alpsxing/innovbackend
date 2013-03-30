@@ -60,19 +60,21 @@
 </script>
 
 <form id="changePwd" method="post" action="">
-    <div class="fitem">
-        <label> 旧密码:</label>
-        <input id="changePwd_OldPwd" name="changePwd_OldPwd" type="password"/>
+    <div class="comment_form">
+        <div class="fitem">
+            <label> 旧密码:</label>
+            <input id="changePwd_OldPwd" name="changePwd_OldPwd" type="password"/>
+        </div>
+        <div class="fitem">
+            <label> 新密码:</label>
+            <input id="changePwd_NewPwd" name="changePwd_NewPwd" type="password"/>
+        </div>
+        <div class="fitem">
+            <label> 新密码确认:</label>
+            <input id="changePwd_NewRePwd" name="changePwd_NewRePwd" type="password"/>
+        </div>
+        <a id="btnSave" href="#" class="easyui-linkbutton">保存</a>
+        <a id="btnClear" href="#" class="easyui-linkbutton">重填</a>
     </div>
-    <div class="fitem">
-        <label> 新密码:</label>
-        <input id="changePwd_NewPwd" name="changePwd_NewPwd" type="password"/>
-    </div>
-    <div class="fitem">
-        <label> 新密码确认:</label>
-        <input id="changePwd_NewRePwd" name="changePwd_NewRePwd" type="password"/>
-    </div>
-    <a id="btnSave" href="#" class="easyui-linkbutton">保存</a>
-    <a id="btnClear" href="#" class="easyui-linkbutton">重填</a>
 </form>
 

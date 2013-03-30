@@ -1,1 +1,30 @@
-Main page
+<style type="text/css">  
+    html { height:100% }  
+    body { height:100%; margin:0px; padding:0px }  
+    #container { height:100% }  
+</style> 
+
+<script type="text/javascript" 
+        src="http://webapi.amap.com/maps?v=1.1&key=<bf75e62d86bd810f9e22ac6838159ab9>" >
+</script>
+
+<script type="text/javascript">
+
+    function initialize() {
+        var mapObj = new AMap.Map("container"); // 创建地图实例  
+        var point = new AMap.LngLat(116.404, 39.915); // 创建点坐标  
+        mapObj.setCenter(point); // 设置地图中心点坐标  
+    }
+
+    $(function() {
+        
+        initialize();
+
+    });
+
+</script>
+
+<div id="container">
+     
+    
+</div> 

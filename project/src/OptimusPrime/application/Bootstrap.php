@@ -45,6 +45,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap {
         $view->headTitle('OptimusPrime');
         $view->headLink()->setStylesheet("/easyui132/themes/default/easyui.css");
         $view->headLink()->appendStylesheet("/easyui132/themes/icon.css");
+        $view->headLink()->appendStylesheet("/css/common.css");
         $view->headScript()->setFile("/easyui132/jquery-1.8.0.min.js");
         $view->headScript()->appendFile("/easyui132/jquery.easyui.min.js");
         $view->headScript()->appendFile("/easyui132/locale/easyui-lang-zh_CN.js");

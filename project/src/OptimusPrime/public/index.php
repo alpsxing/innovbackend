@@ -19,6 +19,8 @@ set_include_path(implode(PATH_SEPARATOR, array(
     realpath(APPLICATION_PATH . '/modules/authen/models'),
     realpath(APPLICATION_PATH . '/modules/default/models'),
     realpath(APPLICATION_PATH . '/modules/monitor/models'),
+    realpath(APPLICATION_PATH . '/modules/sysmgr/models'),
+    realpath(APPLICATION_PATH . '/modules/monmgr/models'),
     
     get_include_path(),
 )));

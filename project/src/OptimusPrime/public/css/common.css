@@ -1,0 +1,399 @@
+* {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+BODY {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+DIV {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+DL {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+DT {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+DD {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+UL {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+OL {
+    MARGIN: 1px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+LI {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 1px;
+    PADDING-LEFT: 1px;
+    PADDING-RIGHT: 1px;
+    PADDING-TOP: 1px;
+}
+
+H1 {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+H2 {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+H3 {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+H4 {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+H5 {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+H6 {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+PRE {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+FORM {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+FIELDSET {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+INPUT {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+P {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+BLOCKQUOTE {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+TH {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+TD {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+INS {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+HR {
+    MARGIN: 0px;
+    PADDING-BOTTOM: 0px;
+    PADDING-LEFT: 0px;
+    PADDING-RIGHT: 0px;
+    PADDING-TOP: 0px;
+}
+
+BODY {
+    FONT-FAMILY: "宋体";
+    FONT-SIZE: 12px;
+    POSITION: relative;
+}
+
+A {
+    TEXT-DECORATION: none;
+}
+
+A:link {
+    COLOR: #000000;
+    TEXT-DECORATION: none;
+}
+
+A:visited {
+    COLOR: #000000;
+    TEXT-DECORATION: none;
+}
+
+A:hover {
+    TEXT-DECORATION: none;
+}
+
+A:active {
+    TEXT-DECORATION: none;
+}
+
+a.link_set:link, a.link_set:visited {
+    color: #0e9499;
+    text-decoration: underline;
+}
+
+a.link_set:hover, a.link_set:active {
+    color: #19d2d9;
+    text-decoration: underline;
+}
+
+
+.toolbar {
+    HEIGHT: 69px;
+    WIDTH: 100%;
+}
+
+
+A:visited {
+    BORDER-BOTTOM: medium none;
+    BORDER-LEFT: medium none;
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    TEXT-DECORATION: none;
+}
+
+
+
+A:active {
+    BORDER-BOTTOM: medium none;
+    BORDER-LEFT: medium none;
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    TEXT-DECORATION: none;
+}
+
+
+.ftitle
+{
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+    padding: 5px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.fitem
+{
+    margin-bottom: 5px;
+}
+.fitem label
+{
+    display: inline-block;
+    width: 80px;
+}
+
+.messager_success {
+    background: url('images/messager_success.gif') no-repeat;
+    height: 36px;
+    width: 36px;
+    margin: 5px 10px 0px 30px;
+    float: left;
+}
+.tip_icon {
+    background: url('images/notice.png') no-repeat;
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin-right: 5px;
+}
+.tip {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #ccc;
+}
+.tip_message {
+    padding-top: 2px;
+    text-align: left;
+}
+textarea {
+    resize: none;
+}
+.toolbar-text {
+    text-align: right;
+    margin-top: 7px;
+    margin-right: 5px;
+}
+.selectedCount {
+    color: red;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.comment_form {width:650px; margin:0 auto; margin-top:40px;}
+
+.red_FontColor {color:#F00;}
+
+.tb {
+    width: 100%;
+    border: 1px solid #A1C2C0;
+    border-collapse: collapse;
+    white-space: nowrap;
+    margin-bottom: 20px;
+}
+.tb .tdtitle {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #f5fcfb;
+}
+.tb td {
+    border: 1px solid #A1C2C0;
+    padding: 5px;
+}
+.tb td.bg {
+    width: 115px;
+    font-weight: bold;
+    font-size: 12px;
+}
+.tb td.evaluation {
+    vertical-align: top;
+}
+.tb td.comment {
+    vertical-align: top;
+    height: 100px;
+}
+.tb td.nobg {
+    font-size: 12px;
+}
+.tb .itdtitle {
+    text-align: center;
+    font-size: 13px;
+    background-color: #f5fcfb;
+    font-weight: bold;
+}
+.tb .datagrid-wrap td {
+    border-top-width: 0px;
+    border-left-width: 0px;
+    border-style: dotted;
+    border-color: #ccc;
+    padding: 0px;
+}
+.tb .datagrid-wrap {
+    border: 0px;
+}
+.tbQuery {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: #f5fcfb;
+    border: 1px solid #A1C2C0;
+    white-space: nowrap;
+}
+.tbQuery td {
+    padding: 2px;
+}
+.tbQuery td.left {
+    width: 50px;
+}
+.tbQuery td.right {
+    width: 160px;
+}
+.content .panel-header {
+    font-size: 13px;
+    background: none;
+    background-color: #f5fcfb;
+}
+.header-table {
+    width: 100%;
+    border-spacing: 0px;
+    white-space: nowrap;
+}

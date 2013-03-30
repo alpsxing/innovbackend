@@ -1,4 +1,123 @@
-<br /><br />
-<div id="view-content">
-	<p>View script for controller <b>Log</b> and script/action name <b>index</b></p>
+<!--页面上的搜索部分-->
+<input type="hidden" id="query_input" value="<?php echo $this->queryStr; ?>" />
+<form id="queryForm" method="post">
+<table id="tbQuery" class="tbQuery">
+    <tbody><tr>
+        <td class="left">时间：</td>
+        <td style="width: 300px;"><input  id="begin_date" name="stime">&nbsp;到&nbsp;<input id="end_date" name="etime"></td>
+        <td class="left">操作内容：</td>
+        <td class="right"><input  id="contentId" name="content"></td>
+        <td class="left">操作用户：</td>
+        <td class="right"><input id="userId" name="userid"></td>
+        <td class="right"></td>
+        <td style="padding-left: 15px;"><a class="l-btn" id="lbtnQuery" href="javascript:void(0)" onclick="goQuery();"><span class="l-btn-left"><span class="l-btn-text">查询</span></span></a></td>
+        <td style="padding-left: 15px;"><a href="#" class="link_set" onclick="clearSearch();">清空查询条件</a></td>
+    </tr>
+    </tbody></table>
+</form>
+
+<!--合同列表-->
+<br />
+<table id="operator_log_info">
+</table>
 </div>
+
+<!--Javascript实现 -->
+<script type="text/javascript">
+
+    var userlist;
+    
+
+    //确认后，这个namelist应该从入职信息表中去取
+    $.ajax({
+        url: GetBaseUrl() + '/sysmgr/user/userlist',
+        async: false, dataType: "json",
+        success: function (json) { userlist = json }
+    });
+   
+    function clearSearch() {
+
+        $("#queryForm").form("clear");
+    }
+
+    function initSearchControl() {
+
+        $('#begin_date').datebox({
+            editable: false,
+            validType: "isbefore['#end_date']"
+        });
+        $('#end_date').datebox({
+            editable: false,
+            validType: "isafter['#begin_date']"
+        });
+
+        $('#userId').combobox({
+            data: userlist,
+            editable: false,
+            valueField: 'id',
+            textField: 'name'
+        });
+
+    }
+   
+
+    function goQuery() {
+
+        goQueryByForm($('#queryForm'), $('#operator_log_info'), GetBaseUrl() + '/sysmgr/log/list');
+    }
+
+    function setQueryParam() {
+       
+        var queryStr = $("#query_input").val();
+       
+        return setQueryParamToForm(queryStr, $('#queryForm'));
+        
+
+    }
+    $(function () {
+        //
+        initSearchControl();
+ 
+        //装载查询form
+        var param = setQueryParam();
+
+        var url = GetBaseUrl() + '/sysmgr/log/list' + '?placeholder=' + param;
+
+        var $grid = $('#operator_log_info');
+        //构造显示合同的列表
+        $grid.datagrid({
+            url: url,
+            fitColumns: true,
+            nowrap: false,
+            rownumbers: true,
+            singleSelect: true,
+            pagination: true,
+            pageList: [5, 10, 20, 40, 50],
+            pageSize: 20,
+            sortName: "time",
+            sortOrder: "desc",
+            //title: "",
+
+            columns: [[
+
+        { field: 'id', align: 'center', width: 100, checkbox: false, hidden: true },
+        { field: 'time', title: '操作时间', width: 120,
+            formatter: function (value, row, index) {
+                var tmpVal = convertJson2Date(value);
+                row.time = tmpVal;
+                return tmpVal;
+            }
+        },
+        { field: 'user_id', title: '操作用户', width: 120 },
+        { field: 'ip_addr', title: 'IP地址', width: 120 },
+        { field: 'content', title: '操作内容', width: 120 },
+        
+        ]]
+        
+
+        }); //grid end 
+
+
+
+    });
+</script>
