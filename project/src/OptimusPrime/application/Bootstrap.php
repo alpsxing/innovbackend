@@ -49,9 +49,9 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap {
         $view->headScript()->setFile("/easyui132/jquery-1.8.0.min.js");
         $view->headScript()->appendFile("/easyui132/jquery.easyui.min.js");
         $view->headScript()->appendFile("/easyui132/locale/easyui-lang-zh_CN.js");
-        $view->headScript()->appendFile("/js/baseurl.js");
-        $view->headScript()->appendFile("/js/common.js");
         $view->headScript()->appendFile("/js/json2.js");
+        $view->headScript()->appendFile("/js/common.js");
+        
         $view->addScriptPath(APPLICATION_PATH . '/modules/default/views/scripts');
         $dbmenu = Zend_Registry::get('menu');
         $view->dbmenu = $dbmenu;

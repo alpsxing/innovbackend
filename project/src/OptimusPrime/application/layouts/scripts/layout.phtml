@@ -16,7 +16,7 @@
                 <div data-options="region:'center',fit:true,border:false" style="background:rgb(217,231,255);padding:0px;">
                     <?php foreach ($this->dbmenu as $dbitem): ?>
                         <?php if ($dbitem['tree_parent'] === '0'): ?>
-                            <?php echo '<a href="' . $this->baseUrl() . '/' . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . '/' . $this->escape($dbitem['action']) . '" class="easyui-linkbutton" data-options="plain:true">'; ?>
+                            <?php echo '<a href="#" class="easyui-linkbutton" data-options="plain:true" onclick="ChangeModule(' . "'" . $this->baseUrl() . "/" . $this->escape($dbitem['module']) . "/" . $this->escape($dbitem['controller']) . "/" . $this->escape($dbitem['action']) . "'" . ')">'; ?>
                             <?php echo $this->escape($dbitem['name']) ?>
                             </a>
                         <?php endif; ?>
