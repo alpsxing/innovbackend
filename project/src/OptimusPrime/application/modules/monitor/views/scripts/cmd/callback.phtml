@@ -1,0 +1,42 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="call_back_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="call_back_form" method="post">
+                <table>
+                    <tr>
+                        <td>
+                            标志：
+                        </td>
+                    <td>
+                        <input type="radio" name="call_back_flag" value="0" checked="true"/> 普通通话
+                        <input type="radio" name="call_back_flag" value="1" /> 监听
+                    </td> 
+                    </tr>
+                    <tr>
+                        <td>
+                            电话号码：
+                        </td>
+                        <td>
+                            <input class="easyui-validatebox" type="text" name="call_back_number" data-options="required:true" />
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

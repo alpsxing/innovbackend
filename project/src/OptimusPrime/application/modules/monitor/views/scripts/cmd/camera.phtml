@@ -1,0 +1,108 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="camera_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',border:false" >
+                    <table>
+                <tr>  
+                    <td>通道ID：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="channel" style="width:180px;">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </td>
+                </tr>  
+                    <tr>
+                    <td>
+                        <input type="radio" name="call_back_flag" value="0" checked="true"/> 停止拍摄
+                        <input type="radio" name="call_back_flag" value="0xffff" /> 录像
+                        <input type="radio" name="call_back_flag" value="1" /> 拍照
+                    </td> 
+                    <td>
+                            <input class="easyui-validatebox" type="text" name="picture_number" data-options="required:true" />
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                        拍照间隔/录像时间
+                    </td> 
+                    <td>
+                            <input class="easyui-validatebox" type="text" name="camera_time" data-options="required:true" />
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                        保存标志
+                    </td> 
+                    <td>
+                        <input type="radio" name="call_back_flag" value="1" checked="true"/> 保存
+                        <input type="radio" name="call_back_flag" value="0" /> 实时上传
+                    </td>
+                    </tr>
+                <tr>  
+                    <td>分辨率：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="resolution" style="width:180px;">
+                            <option value="1">320*240</option>
+                            <option value="2">640*480</option>
+                            <option value="3">800*600</option>
+                            <option value="4">1024*768</option>
+                            <option value="5">176*144</option>
+                            <option value="6">352*288</option>
+                            <option value="7">704*288</option>
+                            <option value="8">704*576</option>
+                        </select>
+                    </td>
+                </tr>  
+                        <tr>
+                            <td>图像/视频质量，1 最好:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:180px" data-options="min:1,max:10,showTip:true">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>亮度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:180px" data-options="min:0,max:255,showTip:true">
+                            </td>
+                        </tr>
+                        <tr><td></td></tr>
+                        <tr><td></td></tr>
+                        <tr>
+                            <td>对比度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:180px" data-options="min:0,max:127,showTip:true">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>饱和度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:180px" data-options="min:0,max:127,showTip:true">
+                            </td>
+                        </tr>
+                        <tr><td></td></tr>
+                        <tr><td></td></tr>
+                        <tr>
+                            <td>色度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:180px" data-options="min:0,max:255,showTip:true">
+                            </td>
+                        </tr>
+                    </table>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

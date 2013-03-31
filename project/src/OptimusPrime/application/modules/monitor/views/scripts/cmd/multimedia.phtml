@@ -1,0 +1,69 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="multi_media_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',border:false" >
+            <div id="multi_media_accordion" class="easyui-accordion" data-options="fit:true">
+                <div id="timed_picture" title="定时拍照控制"  style="overflow:auto;"> 
+                    <?php echo $this->partial('cmd/picture.phtml', array(
+                        "picture_action" => "定时",
+                        "unit_name" => "时间")); ?>
+                </div>
+                <div id='distanced_picture' title="定距拍照控制" style="overflow:auto;"> 
+                    <?php echo $this->partial('cmd/picture.phtml', array(
+                        "picture_action" => "定距",
+                        "unit_name" => "距离")); ?>
+                </div>
+                <div id='normal_picture_items' title="画面控制" style="overflow:auto;"> 
+                    <table>
+                        <tr><td></td></tr>
+                        <tr><td></td></tr>
+                        <tr>
+                            <td>图像/视频质量，1 最好:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:80px" data-options="min:1,max:10,showTip:true">
+                            </td>
+                            <td>亮度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:80px" data-options="min:0,max:255,showTip:true">
+                            </td>
+                        </tr>
+                        <tr><td></td></tr>
+                        <tr><td></td></tr>
+                        <tr>
+                            <td>对比度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:80px" data-options="min:0,max:127,showTip:true">
+                            </td>
+                            <td>饱和度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:80px" data-options="min:0,max:127,showTip:true">
+                            </td>
+                        </tr>
+                        <tr><td></td></tr>
+                        <tr><td></td></tr>
+                        <tr>
+                            <td>色度:</td>
+                            <td>
+                            <input class="easyui-slider" style="width:80px" data-options="min:0,max:255,showTip:true">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

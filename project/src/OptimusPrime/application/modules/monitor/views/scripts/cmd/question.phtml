@@ -1,0 +1,58 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="send_question_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="send_question_form" method="post">
+            <table>
+                <tr>
+                    <td>状态标志：</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="checkbox" name="state_flag" value ="0" >紧急</input>
+                        <input type="checkbox" name="state_flag" value ="3" >终端TTS播读</input>
+                        <input type="checkbox" name="state_flag" value ="4" >广告屏显示</input>
+                    </td>
+                </tr>
+                    <tr>
+                        <td>
+                            问题
+                        </td>
+                    </tr>
+            </table>
+                <textarea cols="50" rows="10" id="msg_content" name="msg_content"/>
+            <table>
+                    <tr>
+                        <td>
+                            候选答案
+                        </td>
+                        <td>
+                            <input type="button" value="添加" onclick="question_add_row()" />
+                        </td>
+                    </tr>
+            </table>
+                <table border="1" width="400px" id="answer">
+                    <tr>
+                        <td>答案ID</td>
+                        <td>答案</td>
+                        <td>操作</td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

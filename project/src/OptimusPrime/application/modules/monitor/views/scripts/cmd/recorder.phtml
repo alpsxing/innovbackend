@@ -1,0 +1,60 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="recorder_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',border:false" >
+                    <table>
+                    <tr>
+                    <td>
+                        录音命令
+                    </td> 
+                    <td>
+                        <input type="radio" name="record_order" value="0" checked="true"/> 停止录音
+                        <input type="radio" name="record_order" value="1" /> 开始录音
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                        录音标志
+                    </td> 
+                    <td>
+                        <input type="radio" name="record_flag" value="0" checked="true"/> 实时上传
+                        <input type="radio" name="record_flag" value="1" /> 保存
+                    </td>
+                    </tr>
+                <tr>  
+                    <td>音频采样率：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="record_frequency" style="width:180px;">
+                            <option value="0">8k</option>
+                            <option value="1">11k</option>
+                            <option value="2">23k</option>
+                            <option value="3">32k</option>
+                        </select>
+                    </td>
+                </tr>  
+                    <tr>
+                    <td>
+                        录音时间
+                    </td> 
+                    <td>
+                            <input class="easyui-validatebox" type="text" name="record_time" data-options="required:true" />
+                    </td>
+                    </tr>
+                    </table>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

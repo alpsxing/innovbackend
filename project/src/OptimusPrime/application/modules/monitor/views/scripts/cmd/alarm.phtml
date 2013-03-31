@@ -1,0 +1,212 @@
+<script type="text/javascript">
+    FORM_DBDATA = undefined;
+
+    //低8位是碰撞事件，高8位是碰撞加速度
+    function fillCollision(data) {
+        if (data["collision_flag"] !== undefined) {
+            var c_time = data["collision_flag"] & parseInt(0x00FF);
+            var c_g = (data["collision_flag"] >> 8) & parseInt(0x00FF);
+            $('form :input[name="collision_time_flag"]').val(c_time);
+            $('form :input[name="collision_g_flag"]').val(c_g);
+        }
+    }
+    function isCheckedBit(seq, bits) {
+        var tmp = 1 << seq;
+        return bits & tmp;
+    }
+    function fillBitSection(bits, $section) {
+        $section.find("input[type='checkbox']").each(function() {
+            var seq = parseInt($(this).attr("name"));
+            if (isCheckedBit(seq, bits)) {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+    function getBitsFromSection($section){
+        var result = 0;
+        var $bits = $section.find("input[type='checkbox']");
+        for(var i=0; i<$bits.length; ++i){
+            var seq = parseInt($($bits[i]).attr("name"));
+            var val = parseInt($($bits[i]).val());
+            if(val === 1){
+                result += 1 << seq;
+            }
+            //alert('seq=' + seq + ' value='+val);
+        }
+        return result;
+    }
+    function fillBitFlags(data) {
+        if (data === undefined) {
+            return;
+        }
+        $("table[idd='mask_bit']").each(function() {
+            var sectionName = $(this).attr("id");
+            if (data[sectionName] !== undefined) {
+                var bits = data[sectionName];
+                fillBitSection(bits, $(this));
+            }
+        });
+    }
+    function getAlarmBitsFields(obj){
+        var $sections = $("table[idd='mask_bit']");
+        for(var i=0; i<$sections.length; ++i){
+            var sectionName = $($sections[i]).attr("id");
+            var bits = getBitsFromSection($($sections[i]));
+            obj[sectionName] = bits;
+        }
+        return obj;
+    }
+    function fillUnmappedField(data) {
+        if (data !== undefined) {
+            fillCollision(data);
+            fillBitFlags(data);
+        }
+    }
+    function getPreDefinedObj(){
+        var definedObj = {
+            max_speed: "",
+            overspeed_time_len: "",
+            drive_time_len: "",
+            drive_day_time: "",
+            min_rest_time: "",
+            max_stop_time: "",
+            overspeed_dvalue: "",
+            fatigue_dvalue: "",
+            collision_flag: "",
+            turnover_flag: ""
+        };
+        return definedObj;
+    }
+    function getAlarmNormalFields(obj, pageObj){
+        if(pageObj === undefined){
+            return undefined;
+        }
+        for(var key in obj){
+            if(pageObj[key] !== undefined){
+                if(key !== 'collision_flag'){
+                    obj[key] = pageObj[key];
+                }else{//collision_flag 需要拼接
+                    var tmp = parseInt(pageObj["collision_time_flag"]);
+                    tmp += parseInt(pageObj["collision_g_flag"]) << 8;
+                    obj[key] = tmp;
+                }
+            }
+        }
+        return obj;
+    }
+    function createAlarmJsonCmd($form)
+    {
+        var pageObj = formArray2Obj($form.serializeArray());
+        var obj = getAlarmNormalFields(getPreDefinedObj(), pageObj);
+        obj = getAlarmBitsFields(obj);
+        alert(JSON.stringify(obj));
+    }
+    $('#alarm_setting_form').form({
+        url: "#",
+        onLoadSuccess: function(data) {
+            fillUnmappedField(data);
+            FORM_DBDATA = data;
+        },
+        onSubmit: function() {
+            //if (!createJsonCmd($(this))) {
+            if (!createAlarmJsonCmd($(this))) {
+                return false;
+            }
+        },
+        success: function(data) {
+            alert(data);
+        }
+    });
+    $(function() {
+        $('#alarm_setting_form').form('load', '/monitor/cmd/initalarm' + getVehicleIdParameterIfOnlyOne());
+    });
+</script>
+
+<div id="alarm_setting_layout" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false" >
+        <div id="alarm_setting_mask" class="easyui-accordion" data-options="fit:true">
+            <div id="alarm_mask" title="报警屏蔽字"  style="overflow:auto;"> 
+                <?php echo $this->partial('cmd/maskbit.phtml', array('mask_id' => 'alarm_mask')); ?>
+            </div>
+            <div id='sms_switch' title="报警发送文本SMS开关" style="overflow:auto;"> 
+                <?php echo $this->partial('cmd/maskbit.phtml', array('mask_id' => 'sms_switch')); ?>
+            </div>
+            <div id='shoot_switch' title="报警拍摄开关" style="overflow:auto;"> 
+                <?php echo $this->partial('cmd/maskbit.phtml', array('mask_id' => 'shoot_switch')); ?>
+            </div>
+            <div id='shoot_store_flag' title="报警拍摄存储标志" style="overflow:auto;"> 
+                <?php echo $this->partial('cmd/maskbit.phtml', array('mask_id' => 'shoot_store_flag')); ?>
+            </div>
+            <div id='key_alarm_flag' title="关键标志" style="overflow:auto;"> 
+                <?php echo $this->partial('cmd/maskbit.phtml', array('mask_id' => 'key_alrm_flag')); ?>
+            </div>
+            <div id='normal_alarm' title="常用设置" style="overflow:auto;"> 
+                <form id="alarm_setting_form" method="post">
+                    <table>
+                        <tr>
+                            <td>最高速度(km/h):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="max_speed" data-options="required:true" />  
+                            </td>
+                            <td>超速持续时间(S):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="overspeed_time_len" data-options="required:true" />  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>连续驾驶时间门限(S):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="drive_time_len" data-options="required:true" />  
+                            </td>
+                            <td>当天累计驾驶时间门限(S):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="drive_day_time" data-options="required:true" />  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>最小休息时间(S):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="min_rest_time" data-options="required:true" />  
+                            </td>
+                            <td>最长停车时间(S):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="max_stop_time" data-options="required:true" />  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>超速报警预警差值(1/10Km/h):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="overspeed_dvalue" data-options="required:true" />  
+                            </td>
+                            <td>疲劳驾驶预警差值(S):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="fatigue_dvalue" data-options="required:true" />  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>碰撞时间报警(4ms):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="collision_time_flag" data-options="required:true" />  
+                            </td>
+                            <td>碰撞加速度报警(0.1g):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="collision_g_flag" data-options="required:true" />  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>侧翻报警参数(度):</td>
+                            <td>
+                                <input class="easyui-validatebox" type="text" name="turnover_flag" data-options="required:true" />  
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'south',border:false" style="height:40px;">
+        <?php
+        echo $this->partial('cmd/submit.phtml', array('form_id' => 'alarm_setting_form'));
+        ?>
+    </div>
+</div>

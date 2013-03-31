@@ -1,0 +1,34 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="vehicle_control_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="vehicle_control_form" method="post">
+                <table>
+                    <tr>
+                        <td>
+                            车辆控制选择：
+                        </td>
+                    <td>
+                        <input type="radio" name="vehicle_action" value="0" checked="true"/> 车门解锁
+                        <input type="radio" name="vehicle_action" value="1" /> 车门加锁
+                    </td> 
+                    </tr>
+                </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

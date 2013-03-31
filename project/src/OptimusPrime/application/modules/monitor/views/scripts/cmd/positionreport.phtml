@@ -1,0 +1,109 @@
+<script type="text/javascript">
+    FORM_DBDATA = undefined;
+    $('#position_report_form').form({
+        url: "#",
+        onLoadSuccess: function(data) {
+            FORM_DBDATA = data;
+        },
+        onSubmit: function() {
+              if(!createJsonCmd($(this))){
+                  return false;
+              }
+        },
+        success: function(data) {
+            alert(data);
+        }
+    });
+    $(function() {
+        $('#position_report_form').form('load', '/monitor/cmd/initpositionreport' + getVehicleIdParameterIfOnlyOne());
+    });
+</script>
+
+<div id="position_report_layout" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',fit:true,border:false" >
+        <form id="position_report_form" method="post">
+            <table>
+                <tr>  
+                    <td>位置汇报策略：</td> 
+                    <td>
+                        <input type="radio" name="report_strategy" pid="0x0020" value="0"/> 定时汇报
+                        <input type="radio" name="report_strategy" pid="0x0020" value="1"/> 定距汇报
+                        <input type="radio" name="report_strategy" pid="0x0020" value="2"/> 定时和定距汇报
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>位置汇报方案：</td> 
+                    <td>
+                        <input type="radio" name="report_scheme" pid="0x0021" value="0"/> 根据ACC状态
+                        <input type="radio" name="report_scheme" pid="0x0021" value="1"/> 根据登录状态和ACC状态
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>驾驶员未登录汇报时间间隔，单位为秒（s），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="logout_rep_interval" pid="0x0022" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>休眠时汇报时间间隔，单位为秒（s），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="sleep_rep_interval" pid="0x0027" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>紧急报警时汇报时间间隔，单位为秒（s），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="alarm_rep_interval" pid="0x0028" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>缺省时间汇报间隔，单位为秒（s），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="default_rep_interval" pid="0x0029" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>缺省距离汇报间隔，单位为米（m），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="default_rep_distance" pid="0x002C" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>驾驶员未登录汇报距离间隔，单位为米（m），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="logout_rep_distance" pid="0x002D" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>休眠时汇报距离间隔，单位为米（m），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="sleep_rep_distance" pid="0x002E" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>紧急报警时汇报距离间隔，单位为米（m），>0：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="alarm_rep_distance" pid="0x002F" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>拐点补传角度，<180：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="inflexion_rep_anglel" pid="0x0030" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>电子围栏半径（非法位移阈值），单位为米：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="fence_radius" pid="0x0031" data-options="required:true" />  
+                    </td>
+                </tr>  
+            </table>
+        </form>
+    </div>
+    <div data-options="region:'south',border:false" style="height:40px;">
+        <?php
+        echo $this->partial('cmd/submit.phtml', array('form_id' => 'position_report_form'));
+        ?>
+    </div>
+</div>

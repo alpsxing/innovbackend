@@ -28,10 +28,10 @@
     });
     function sendcmd() {
         $('#send-cmd-dialog').dialog({
-            width: 900,
-            height: 450,
+            width: 1200,
+            height: 600,
             title: '下发命令',
-            href: GetBaseUrl() + '/monitor/index/sendcmd'
+            href: GetBaseUrl() + '/monitor/cmd/sendcmd'
         });
     }
 </script>
@@ -41,8 +41,20 @@
             <?php echo '<div  title="' . $dbitem['name'] . '" data-options="iconCls:' . "'icon-ok'" . '" style="overflow:auto;padding:10px;">'; ?>
             <div>
                 <input idd="tree-search-input"></input>
-            </div>        
-            <?php echo '<ul class="easyui-tree" data-options="url:' . "'" . "/" . $this->baseUrl() . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . '/' . $this->escape($dbitem['action']) . "'" . '"></ul>' ?>
+            </div>
+            <?php if ('vehicletree' == $dbitem['action']): ?>
+                <?php
+                echo $this->partial('index/vehiclelisttree.phtml', array(
+                    "second_action" => "/monitor/index/groupvehicle",
+                    "tree_url" => "/" . $this->baseUrl() . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . '/' . $this->escape($dbitem['action'])));
+                ?>
+            <?php else: ?>
+                <?php
+                echo $this->partial('index/vehiclelisttree.phtml', array(
+                    "second_action" => "/monitor/index/groupvehicle11",
+                    "tree_url" => "/" . $this->baseUrl() . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . '/' . $this->escape($dbitem['action'])));
+                ?>
+        <?php endif; ?>
         </div>
     <?php endif; ?>
 <?php endforeach; ?>

@@ -1,0 +1,141 @@
+<script type="text/javascript">
+    
+    $('#set_network_form').form({
+        url: "#",
+        onLoadSuccess: function(data){
+            FORM_DBDATA = data;
+            //alert(JSON.stringify(data));
+        },
+        onSubmit: function() {
+              if(!createJsonCmd($(this))){
+                  return false;
+              }
+        },
+        success: function(data) {
+            alert(data);
+        }
+    });
+    $(function() {
+        $('#set_network_form').form('load', '/monitor/cmd/initnetworkform' + getVehicleIdParameterIfOnlyOne());
+    });
+
+</script>
+<div id="set_network_layout" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',fit:true,border:false" >
+        <form id="set_network_form" method="post">
+            <table>
+                <tr>  
+                    <td>终端心跳发送间隔(S)：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="heartbeat" pid="0x0001" data-options="required:true" />  
+                    </td>
+                    <td>备份服务器APN：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="slave_server_apn" pid="0x0014" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>TCP 消息应答超时时间(S)：</td>  
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="tcp_timeout" pid="0x0002" data-options="required:true" />  
+                    </td>
+                    <td>备份服务器拨号用户名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="slave_server_username" pid="0x0015" data-options="required:true" />  
+                    </td>
+                </tr> 
+                <tr>  
+                    <td>TCP 消息重传次数：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="tcp_attempt" pid="0x0003" data-options="required:true" />  
+                    </td>
+                    <td>备份服务器拨号密码：</td>  
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="slave_server_passwd" pid="0x0016" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>UDP 消息应答超时时间(S)：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="udp_timeout" pid="0x0004" data-options="required:true" />  
+                    </td>
+                    <td>备份服务器地址IP域名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="slave_server_ip" pid="0x0017" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>UDP 消息重传次数：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="udp_attempt" pid="0x0005" data-options="required:true" />  
+                    </td>
+                    <td>服务器TCP端口：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="tcp_port" pid="0x0018" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>SMS 消息应答超时时间(S)：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="sms_timeout" pid="0x0006" data-options="required:true" />  
+                    </td>
+                    <td>服务器UDP端口：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="udp_port" pid="0x0019" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>SMS消息重传次数：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="sms_attempt" pid="0x0007" data-options="required:true" />  
+                    </td>
+                    <td>运输证IC卡认证主服务器IP或域名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="ic_server_ip" pid="0x001A" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>主服务器APN：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="server_apn" pid="0x0010" data-options="required:true" />  
+                    </td>
+                    <td>运输证IC卡认证主服务器TCP端口：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="ic_server_tcp_port" pid="0x001B" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>主服务器拨号用户名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="server_username" pid="0x0011" data-options="required:true" />  
+                    </td>
+                    <td>运输证IC卡认证主服务器UDP端口：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="ic_server_udp_port" pid="0x001C" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>主服务器拨号密码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="server_passwd" pid="0x0012" data-options="required:true" />  
+                    </td>
+                    <td>运输证IC卡认证备份服务器IP或域名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="ic_slave_server_ip" pid="0x001D" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>主服务器地址IP或域名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="server_ip" pid="0x0013" data-options="required:true" />  
+                    </td>
+                </tr>  
+            </table>
+        </form>
+    </div>
+    <div data-options="region:'south',border:false" style="height:40px;">
+        <?php
+        echo $this->partial('cmd/submit.phtml', array('form_id' => 'set_network_form'));
+        ?>
+    </div>
+</div>

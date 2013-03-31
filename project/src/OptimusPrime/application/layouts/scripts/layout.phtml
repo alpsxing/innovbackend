@@ -5,13 +5,14 @@
         <?php echo $this->headTitle() ?>
         <?php echo $this->headLink() ?>
         <?php echo $this->headScript() ?>
+        
     </head>
     <body id="main-body" class="easyui-layout">
         <!--        Layout-region-north: main menu-->
         <div data-options="region:'north',border:false" style="height:38px;background:rgb(217,231,255);padding:5px">
             <div class="easyui-layout" data-options="fit:true,border:false">
-                <div data-options="region:'west',border:false" style="background:rgb(217,231,255);width:80px;padding:0px;">
-                    <img src="/images/logo.jpg" alt="" border="0" height="23" width="75"/>
+                <div data-options="region:'west',border:false" style="background:rgb(217,231,255);width:40px;padding:0px;">
+                    <img src="/images/logo2_96.png" alt="" border="0" height="25" width="32"/>
                 </div>
                 <div data-options="region:'center',fit:true,border:false" style="background:rgb(217,231,255);padding:0px;">
                     <?php foreach ($this->dbmenu as $dbitem): ?>
@@ -32,7 +33,7 @@
         </div>
         <?php foreach ($this->dbmenu as $dbitem): ?>
             <?php if ($dbitem['id'] === $this->module_id): ?>
-                <?php echo '<div data-options="' . "region:'west',title:'功能列表',split:true,href:'" . $this->baseUrl() . "/" . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . "/westmenu'" . '"  style="width:200px;padding:0px;">'; ?>
+                <?php echo '<div data-options="' . "region:'west',title:'导航栏',split:true,href:'" . $this->baseUrl() . "/" . $this->escape($dbitem['module']) . '/' . $this->escape($dbitem['controller']) . "/westmenu'" . '"  style="width:200px;padding:0px;">'; ?>
             </div>
         <?php endif; ?>
     <?php endforeach; ?>

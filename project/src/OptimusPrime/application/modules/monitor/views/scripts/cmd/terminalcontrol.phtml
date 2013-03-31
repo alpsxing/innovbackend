@@ -1,0 +1,25 @@
+<script type="text/javascript">
+    function control_terminal_cmd(cmdhref) {
+        $('#control_terminal_layout').layout('remove', 'center');
+        $('#control_terminal_layout').layout('add', {
+            region: 'center',
+            fit: true,
+            split:true,
+            href: GetBaseUrl() + "/monitor/cmd/" + cmdhref
+        });
+    }
+</script>
+<div id="control_terminal_layout" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',split:true,title:'控制命令'" style="width:180px" >
+        <ul>
+            <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="control_terminal_cmd('specifyserver');">连接指定服务器</a></li>
+            <li><a href='#' class="easyui-linkbutton" data-options="plain:true">终端关机</a></li>
+            <li><a href='#' class="easyui-linkbutton" data-options="plain:true">终端复位</a></li>
+            <li><a href='#' class="easyui-linkbutton" data-options="plain:true">恢复出厂设置</a></li>
+            <li><a href='#' class="easyui-linkbutton" data-options="plain:true">关闭数据通信</a></li>
+            <li><a href='#' class="easyui-linkbutton" data-options="plain:true">关闭所有无线通信</a></li>
+        </ul>
+    </div>
+    <div data-options="region:'center'" >
+    </div>
+</div>

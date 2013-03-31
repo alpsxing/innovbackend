@@ -1,0 +1,77 @@
+<script type="text/javascript">
+    $('#send_message_form').form({
+            url: "#",
+            onSubmit: function() {
+                var flag = 0;
+                var $flagObjs = $("input[name=state_flag]:checked");
+                for(var i=0; i<$flagObjs; ++i){
+                    flag += 1 << $flagObjs[i].val();
+                };
+                var msg_type = $("input[name=msg_type]:checked").val();
+                if(msg_type > 0){
+                    flag += 1 << 5;
+                }
+                var text = $('#msg_content').val();
+                if(text.length < 1){
+                    alert('下传文本信息不能为空！');
+                    return false;
+                }
+                var data = {
+                    FLAG: flag,
+                    TEXT: text
+                };
+                var vlist = getVehicleList();
+                if(vlist.length === 0){
+                    alert('请选择车辆');
+                    return false;
+                }
+                var cmd_str = createParameterCmd(MID_SEND_MSG, vlist, data);
+                alert("json str = " + cmd_str);
+                return false;
+            },
+            success: function(data) {
+                alert(data);
+            }
+        });
+</script>
+
+<div id="send_message_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="send_message_form" method="post">
+            <table>
+                <tr>
+                    <td>状态标志：</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="checkbox" name="state_flag" value ="0" >紧急</input>
+                        <input type="checkbox" name="state_flag" value ="2" >终端显示器显示</input>
+                        <input type="checkbox" name="state_flag" value ="3" >终端TTS播读</input>
+                        <input type="checkbox" name="state_flag" value ="4" >广告屏显示</input>
+                    </td>
+                </tr>
+            </table>
+                <table>
+                    <tr>
+                    <td>
+                        <input type="radio" name="msg_type" value="0" checked="true"/> 中心导航信息
+                    </td>
+                    <td>
+                        <input type="radio" name="msg_type" value="1" /> CAN 故障码信息
+                    </td> 
+                    </tr>
+                    <tr>
+                        <td>
+                            文本信息
+                        </td>
+                    </tr>
+                </table>
+                <textarea cols="50" rows="10" id="msg_content" name="msg_content"/>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+                <?php
+                echo $this->partial('cmd/submit.phtml', array('form_id' => 'send_message_form'));
+                ?>
+        </div>
+</div>

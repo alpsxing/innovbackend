@@ -1,0 +1,34 @@
+<script type="text/javascript">
+    $(function(){
+    });
+    function submitForm()
+    {
+        alert("trace");
+    }
+</script>
+
+<div id="trace_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false,title:'临时位置跟踪控制'" >
+            <form id="trace_form" method="post">
+            <table>
+                <tr>  
+                    <td>时间间隔(S)：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="time_interval" data-options="required:true" style="width:100px;"/>  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>位置跟踪有效期(S)：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="end_time" data-options="required:true" style="width:100px;"/>  
+                    </td>
+                </tr>  
+            </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+                <?php
+                echo $this->partial('cmd/submit.phtml');
+                ?>
+        </div>
+</div>

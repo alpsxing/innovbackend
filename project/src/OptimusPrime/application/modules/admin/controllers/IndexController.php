@@ -12,15 +12,5 @@ class Admin_IndexController extends Zend_Controller_Action {
         // action body
     }
 
-    public function westmenuAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
-
-    public function roleAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
-
 }
 

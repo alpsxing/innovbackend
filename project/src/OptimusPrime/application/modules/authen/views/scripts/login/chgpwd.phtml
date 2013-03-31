@@ -39,10 +39,10 @@
                 onSubmit: function() {
                     return $(this).form("validate");
                 },
-                success: function(result) {
+                success: function(ret) {
                     try {
-                        
-                        var result = JSON.parse(result);
+                        console_trace(ret);
+                        var result = JSON.parse(ret);
                         if (!result.status) {
                             showAlertMessage(result.msg, 2);
 

@@ -1,5 +1,4 @@
 <script type="text/javascript">
-    //$('#south-tabs').show();
     $(function() {
         $('#vehicle-position-table').datagrid({
             url: GetBaseUrl() + '/monitor/information/vehicleposition',
@@ -27,7 +26,7 @@
     <div onclick="tyyy();">不删除</div>
 </div>
 
-<div id="south-tabs" class="easyui-tabs" data-options="fit:true">  
+<div id="south-tabs" class="easyui-tabs" data-options="fit:true,tabPosition:'bottom'">  
     <div title="车辆位置信息" data-options="iconCls:'icon-reload'" style="padding:5px;">  
         <table id="vehicle-position-table" class="easyui-datagrid" data-options="singleSelect:true,fitColumns:true">
         </table>

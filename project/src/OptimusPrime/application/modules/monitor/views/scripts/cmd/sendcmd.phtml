@@ -1,0 +1,124 @@
+<script type="text/javascript">
+    var FORM_DBDATA; //the data load from db
+    var SN = 0;
+    var MID_SEND_MSG = 0x8300;
+    var MID_SEND_PARAMETER = 0x8103;
+    
+    function send_cmd(cmdhref) {
+        $('#send-cmd-layout').layout('remove', 'center');
+        $('#send-cmd-layout').layout('add', {
+            region: 'center',
+            fit: true,
+            split: true,
+            href: GetBaseUrl() + "/monitor/cmd/" + cmdhref
+        });
+    }
+
+    function getVehicleList()
+    {
+        var $ptree = $('#parameter_tree');
+        var nodes = $ptree.tree('getChecked');
+        var vlist = new Array();
+        for (var i = 0; i < nodes.length; i++) {
+            if(nodes[i].attributes === 'v'){
+                vlist.push({id: parseInt(nodes[i].id)});
+            }
+        }
+        return vlist;
+    }
+    
+    function createParameterCmd(mid, vlist, data) {
+            var jdata = {
+                SN: ++SN,
+                MID: parseInt(mid),
+                LIST: vlist,
+                DATA: data
+            };
+            return JSON.stringify(jdata);
+        }
+    function makeParameterObj($pids, changesArr) {
+            var pObj = {};
+            for (var i = 0; i < $pids.length; ++i) {
+                if (changesArr[$($pids[i]).attr('name')] !== undefined) {
+                    pObj[$($pids[i]).attr('pid')] = changesArr[$($pids[i]).attr('name')];
+                }
+            }
+            return pObj;
+        }
+    function formChangedField(formField){
+        var changedObj = {};
+        for(var key in formField){
+            if(FORM_DBDATA === undefined || FORM_DBDATA[key] === undefined || formField[key] !== FORM_DBDATA[key]){
+                if(formField[key] !== ''){
+                    changedObj[key] = formField[key];
+                }
+            }
+        }
+        return changedObj;
+    }
+    function formArray2Obj(arr){
+        var obj = {};
+        var len = arr.length;
+        for(var i=0; i<len; ++i){
+            obj[arr[i].name] = arr[i].value;
+        }
+        return obj;
+    }
+    function createJsonCmd($form){
+            var vlist = getVehicleList();
+            if (vlist.length === 0) {
+                alert('请选择车辆');
+                return false;
+            }else if(vlist.length > 1){
+                //if multi-vehicles, all fields need send
+                FORM_DBDATA = undefined;
+            }
+            var $pids = $form.find("input[pid]");
+            var changes = formChangedField(formArray2Obj($form.serializeArray()));
+            //alert(JSON.stringify(changes));
+            var pObj = makeParameterObj($pids, changes);
+            if ($.isEmptyObject(pObj)) {
+                alert('请修改参数');
+                return false;
+            }
+            var cmd_str = createParameterCmd(MID_SEND_PARAMETER, vlist, pObj);
+            alert(cmd_str);
+            return false;
+    }
+    function getVehicleIdParameterIfOnlyOne(){
+        var vlist = getVehicleList();
+        var get_para = vlist.length === 1 ? '?id=' + vlist[0].id : "";
+        return get_para;
+    }
+</script>
+<div id="send-cmd-big-layout" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',split:true,title:'车辆列表'" style="width:170px;" >
+                <?php
+                echo $this->partial('index/vehiclelisttree.phtml', array(
+                    "second_action" => "/monitor/index/groupvehicle",
+                    "tree_url" => "/monitor/index/vehicletree",
+                    "tree_id" => "parameter_tree"));
+                ?>
+    </div>
+    <div data-options="region:'center',fit:true,split:true">
+        <div id="send-cmd-layout" class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'west',split:true,title:'命令列表'" style="width:200px;" >
+                <ul>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('setterminal');">设置终端参数</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('terminalcontrol');">终端控制</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('trace');">临时位置跟踪控制</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('sendmessage');">文本信息下发</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('question');">提问下发</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('callback');">电话回拨</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('phonebook');">设置电话本</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('vehiclecontrol');">车辆控制</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true">上报驾驶员身份信息请求</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true" onclick="send_cmd('camera');">摄像头立即拍摄命令</a></li>
+                    <li><a href='#' class="easyui-linkbutton" data-options="plain:true"onclick="send_cmd('recorder');">录音开始命令</a></li>
+                </ul>
+            </div>  
+            <div data-options="region:'center',split:true">
+            </div>  
+        </div>  
+    </div>
+</div>

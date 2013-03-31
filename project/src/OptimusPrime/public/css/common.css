@@ -282,14 +282,14 @@ A:active {
 }
 
 .messager_success {
-    background: url('images/messager_success.gif') no-repeat;
+    background: url('/images/messager_success.gif') no-repeat;
     height: 36px;
     width: 36px;
     margin: 5px 10px 0px 30px;
     float: left;
 }
 .tip_icon {
-    background: url('images/notice.png') no-repeat;
+    background: url('/images/notice.png') no-repeat;
     width: 16px;
     height: 16px;
     float: left;
@@ -396,4 +396,23 @@ textarea {
     width: 100%;
     border-spacing: 0px;
     white-space: nowrap;
+}
+
+.welcome_rig7 {
+    width: 631px;
+    background: url(/images/welcome_img/st_self.gif) no-repeat;
+    height: 306px;
+    margin: auto;
+}
+.welcome_rig6 {
+    width: 631px;
+    background: url(/images/welcome_img/mb_right_bj.gif) no-repeat;
+    height: 306px;
+    margin: auto;
+}
+.welcome_text {
+    width: 372px;
+    line-height: 19px;
+    padding: 231px 0 0 182px;
+    color: #999999;
 }

@@ -1,0 +1,95 @@
+<script type="text/javascript">
+    FORM_DBDATA = undefined;
+    $('#phone_form').form({
+        url: "#",
+        onLoadSuccess: function(data) {
+            FORM_DBDATA = data;
+        },
+        onSubmit: function() {
+              if(!createJsonCmd($(this))){
+                  return false;
+              }
+        },
+        success: function(data) {
+            alert(data);
+        }
+    });
+    $(function() {
+        $('#phone_form').form('load', '/monitor/cmd/initphone' + getVehicleIdParameterIfOnlyOne());
+    });
+</script>
+
+<div id="phone_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="phone_form" method="post">
+            <table>
+                <tr>  
+                    <td>监控平台电话号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0040" name="platform_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>复位电话号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0041" name="reset_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>恢复出厂设置电话号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0042" name="initial_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>监控平台SMS 电话号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0043" name="sms_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>接收终端SMS 文本报警号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0044" name="alarm_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>终端电话接听策略：</td> 
+                    <td>
+                        <input type="radio" name="phone_rstrategy" pid="0x0045" value="0"/> 自动接听
+                        <input type="radio" name="phone_rstrategy" pid="0x0045" value="1"/> 手动接听
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>每次最长通话时间，单位为秒，0 为不允许通话，<br>0xFFFFFFFF 为不限制：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0046" name="max_time_each" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>当月最长通话时间，单位为秒，0 为不允许通话，<br>0xFFFFFFFF 为不限制：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0047" name="max_time_month" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>监听电话号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0048" name="monitor_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>监管平台特权短信号码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" pid="0x0049" name="sm_phone" data-options="required:true" />  
+                    </td>
+                </tr>  
+            </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+        <?php
+        echo $this->partial('cmd/submit.phtml', array('form_id' => 'phone_form'));
+        ?>
+        </div>
+</div>

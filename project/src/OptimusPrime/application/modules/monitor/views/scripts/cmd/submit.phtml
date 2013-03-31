@@ -1,0 +1,10 @@
+<script type="text/javascript">
+        function submitForm(formId)
+        {
+            $('#' + formId).submit();
+        }
+</script>
+<div style="text-align:center;padding:5px">
+    <?php echo '<a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm('. "'". $this->escape($this->form_id) . "'" . ')">' ?> 命令下发</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()">取消</a>
+</div>

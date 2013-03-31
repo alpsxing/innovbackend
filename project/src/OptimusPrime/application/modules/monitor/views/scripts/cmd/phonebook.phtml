@@ -1,0 +1,65 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="phone_book_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="phone_book_form" method="post">
+                <table>
+                <tr>  
+                    <td>选择电话本：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="select_book" style="width:250px;">
+                            <option value="0">怎么取电话本？</option>
+                            <option value="1">没明白</option>
+                        </select>
+                    </td>
+                </tr>  
+                </table>
+                <table>
+                    <tr>
+                        <td>
+                            设置选择：
+                        </td>
+                    <td>
+                        <input type="radio" name="book_choice" value="1" checked="true"/> 更新电话本
+                        <input type="radio" name="book_choice" value="2" /> 追加电话本
+                        <input type="radio" name="book_choice" value="3" checked="true"/> 修改电话本
+                        <input type="radio" name="book_choice" value="0" /> 删除电话本
+                    </td> 
+                    </tr>
+                    <tr>
+                        <td>
+                            电话本：
+                        </td>
+                        <td>
+                            <input type="button" value="添加联系人" onclick="question_add_row()" />
+                            <input type="button" value="保存电话本" onclick="question_add_row()" />
+                            <input type="button" value="另存为新的电话本" onclick="question_add_row()" />
+                        </td>
+                    </tr>
+                </table>
+                <table border="1" width="400px" id="answer">
+                    <tr>
+                        <td>联系人</td>
+                        <td>电话号码</td>
+                        <td>标志</td>
+                        <td>操作</td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

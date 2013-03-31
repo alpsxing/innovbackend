@@ -8,9 +8,6 @@ class Monitor_InformationController extends Zend_Controller_Action
         /* Initialize action controller here */
        
         
-        //!!!This is a constant for the module.
-        $module_id = '1';
-        $this->view->module_id = $module_id;
         $this->_helper->layout->disableLayout();
         $this->_helper->viewRenderer->setNoRender();
 

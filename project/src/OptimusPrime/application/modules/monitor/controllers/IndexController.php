@@ -24,31 +24,39 @@ class Monitor_IndexController extends Zend_Controller_Action
         // action body
     }
     
-    public function sendcmdAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
-    
-    public function setterminalAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
-
     public function vehicletreeAction()
     {
         $this->_helper->layout->disableLayout();
         $this->_helper->viewRenderer->setNoRender();
-        $json = '[{"id":1,"text":"客户1"},{"id":2,"text":"客户2","children":[{
-                        "id":3,
-                        "text":"分组1",
-                        "children":[{"id":5,
-                        "text":"京Gvy622"},{"id":6, "text":"京V2012"}]
-		},{
-			"text":"ford"
-		}]}]';
-        header('Content-type: application/json');
+//        $json = '[{"text":"客户1"},{"id":2,"text":"客户2","children":[{
+//                        "id":3,
+//                        "text":"分组1",
+//                        "children":[{"id":5,
+//                        "text":"京Gvy622"},{"id":6, "text":"京V2012"}]
+//		},{
+//			"text":"ford"
+//		}]}]';
+//        header('Content-type: application/json');
+        $dba = Zend_Registry::get("dbAdapter");
+        $treeObj = new Monitor_Model_Vehicletree($dba);
+        $ret = $treeObj->getTreeByClient(1);
+        $json = Zend_Json::encode($ret);
         echo $json;
     }
+    
+    public function groupvehicleAction()
+    {
+        header('Content-type: application/json');
+        $gid = $this->getRequest()->getParam('gid');
+        $this->_helper->layout->disableLayout();
+        $this->_helper->viewRenderer->setNoRender();
+        $dba = Zend_Registry::get("dbAdapter");
+        $treeObj = new Monitor_Model_Vehicletree($dba);
+        $ret = $treeObj->getNodesByGroup($gid);
+        $json = Zend_Json::encode($ret);
+        echo $json;
+    }
+    
     public function regiontreeAction()
     {
         $this->_helper->layout->disableLayout();
@@ -63,19 +71,5 @@ class Monitor_IndexController extends Zend_Controller_Action
         echo $json;
     }
 
-    public function setnetworkAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
-    
-    public function positionreportAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
-    
-    public function terminalcontrolAction()
-    {
-        $this->_helper->layout->disableLayout();
-    }
 }
 

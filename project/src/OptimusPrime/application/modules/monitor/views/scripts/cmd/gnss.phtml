@@ -1,0 +1,108 @@
+<script type="text/javascript">
+    $(function(){
+    });
+</script>
+
+<div id="gnss_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="gnss_form" method="post">
+            <table>
+                <tr>
+                    <td>GNSS 定位模式：</td>
+                </tr>
+                <tr>  
+                    <td>
+                        <input type="radio" name="gps_mode" value="0" checked="true"/> 禁用GPS 定位
+                    </td>
+                    <td>
+                        <input type="radio" name="gps_mode" value="1" /> 启用GPS 定位
+                    </td> 
+                </tr>  
+                <tr>  
+                    <td>
+                        <input type="radio" name="beidou_mode" value="0"  checked="true"/> 禁用北斗定位
+                    </td>
+                    <td>
+                        <input type="radio" name="beidou_mode" value="1" /> 启用北斗定位
+                    </td> 
+                </tr>  
+                <tr>  
+                    <td>
+                        <input type="radio" name="glonass_mode" value="0"  checked="true"/> 禁用GLONASS 定位
+                    </td>
+                    <td>
+                        <input type="radio" name="glonass_mode" value="1" /> 启用GLONASS 定位
+                    </td> 
+                </tr>  
+                <tr>  
+                    <td>
+                        <input type="radio" name="galileo_mode" value="0"  checked="true"/> 禁用Galileo 定位
+                    </td>
+                    <td>
+                        <input type="radio" name="galileo_mode" value="1" /> 启用Galileo 定位
+                    </td> 
+                </tr>  
+                <tr>  
+                    <td>GNSS波特率：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="baud_rate" style="width:90px;">
+                            <option value="0">4800</option>
+                            <option value="1">9600</option>
+                            <option value="2">19200</option>
+                            <option value="3">38400</option>
+                            <option value="4">57600</option>
+                            <option value="5">115200</option>
+                        </select>
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>GNSS模块详细定位数据输出频率：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="output_rate" style="width:90px;">
+                            <option value="0">500ms</option>
+                            <option value="1">1000ms</option>
+                            <option value="2">2000ms</option>
+                            <option value="3">3000ms</option>
+                            <option value="4">4000ms</option>
+                        </select>
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>GNSS模块详细定位数据采集频率(S)：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="simple_rate" data-options="required:true" style="width:100px;"/>  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>GNSS模块详细定位数据上传方式：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="upload_mode" style="width:110px;">
+                            <option value="0">本地存储不上传</option>
+                            <option value="1">按时间间隔上传</option>
+                            <option value="2">按距离间隔上传</option>
+                            <option value="11">按累计时间上传</option>
+                            <option value="12">按累计距离上传</option>
+                            <option value="13">按累计条数上传</option>
+                        </select>
+                    </td>
+                    <td>
+                     <input class="easyui-validatebox" type="text" name="upload_setting" data-options="required:true" style="width:100px;"/>
+                    </td>
+                    <td id="upload_unit">秒</td>
+                </tr>  
+            </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>

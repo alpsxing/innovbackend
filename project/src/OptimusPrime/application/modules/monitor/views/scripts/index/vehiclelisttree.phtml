@@ -1,0 +1,42 @@
+<script type="text/javascript">
+    function getTreeVehicles($tmp, node) {
+        if (node.attributes === 'g') {
+            if ($tmp.tree('getChildren', node.target).length > 0) {
+                return true;
+            }
+            $.ajax({
+                type: "post",
+                url: $tmp.attr("second_action"), //"/monitor/index/groupvehicle",
+                cache: false,
+                async: false,
+                data: {gid: node.id},
+                dataType: "json",
+                success: function(data) {
+                    $tmp.tree('append', {
+                        parent: node.target,
+                        data: data
+                    });
+                }
+            });
+            return true;
+        } else {
+            return true;
+        }
+    }
+
+    $(function() {
+        $('ul.easyui-tree').each(function() {
+            var $tmp = $(this);
+            $(this).tree({
+                checkbox: true,
+                onBeforeCheck: function(node) {
+                    return getTreeVehicles($tmp, node);
+                },
+                onBeforeExpand: function(node) {
+                    return getTreeVehicles($tmp, node);
+                }
+            });
+        });
+    });
+</script>
+<?php echo '<ul class="easyui-tree" id="'. $this->escape($this->tree_id) .'" second_action="' . $this->escape($this->second_action) . '" data-options="url:' . "'" . $this->escape($this->tree_url) . "'" . '"></ul>' ?>

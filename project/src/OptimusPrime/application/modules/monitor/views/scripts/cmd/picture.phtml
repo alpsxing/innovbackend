@@ -1,0 +1,90 @@
+<table>
+    <tr>
+        <td>摄像通道1<?php echo $this->escape($this->picture_action); ?>拍照开关标志</td>
+        <td>
+                        <select id='bit0' class="easyui-combobox" name="channel1switch" style="width:50px;">
+                            <option value="0">不允许</option>
+                            <option value="1">允许</option>
+                        </select>
+        </td>
+        <td>摄像通道2<?php echo $this->escape($this->picture_action); ?>拍照开关标志</td>
+        <td>
+                        <select id='bit1' class="easyui-combobox" name="channel2switch" style="width:50px;">
+                            <option value="0">不允许</option>
+                            <option value="1">允许</option>
+                        </select>
+        </td>
+        <td>摄像通道3<?php echo $this->escape($this->picture_action); ?>拍照开关标志</td>
+        <td>
+                        <select id='bit2' class="easyui-combobox" name="channel3switch" style="width:50px;">
+                            <option value="0">不允许</option>
+                            <option value="1">允许</option>
+                        </select>
+        </td>
+    </tr>
+    <tr>
+        <td>摄像通道4<?php echo $this->escape($this->picture_action); ?>拍照开关标志</td>
+        <td>
+                        <select id='bit3' class="easyui-combobox" name="channel4switch" style="width:50px;">
+                            <option value="0">不允许</option>
+                            <option value="1">允许</option>
+                        </select>
+        </td>
+        <td>摄像通道5<?php echo $this->escape($this->picture_action); ?>拍照开关标志</td>
+        <td>
+                        <select id='bit4' class="easyui-combobox" name="channel5switch" style="width:50px;">
+                            <option value="0">不允许</option>
+                            <option value="1">允许</option>
+                        </select>
+        </td>
+        <td>摄像通道1<?php echo $this->escape($this->picture_action); ?>拍照存储标志</td>
+        <td>
+                        <select id='bit8' class="easyui-combobox" name="channel1store" style="width:50px;">
+                            <option value="0">存储</option>
+                            <option value="1">上传</option>
+                        </select>
+        </td>
+    </tr>
+    <tr>
+        <td>摄像通道2<?php echo $this->escape($this->picture_action); ?>拍照存储标志</td>
+        <td>
+                        <select id='bit9' class="easyui-combobox" name="channel2store" style="width:50px;">
+                            <option value="0">存储</option>
+                            <option value="1">上传</option>
+                        </select>
+        </td>
+        <td>摄像通道3<?php echo $this->escape($this->picture_action); ?>拍照存储标志</td>
+        <td>
+                        <select id='bit10' class="easyui-combobox" name="channel3store" style="width:50px;">
+                            <option value="0">存储</option>
+                            <option value="1">上传</option>
+                        </select>
+        </td>
+        <td>摄像通道4<?php echo $this->escape($this->picture_action); ?>拍照存储标志</td>
+        <td>
+                        <select id='bit11' class="easyui-combobox" name="channel4store" style="width:50px;">
+                            <option value="0">存储</option>
+                            <option value="1">上传</option>
+                        </select>
+        </td>
+    </tr>
+    <tr>
+        <td>摄像通道5<?php echo $this->escape($this->picture_action); ?>拍照存储标志</td>
+        <td>
+                        <select id='bit12' class="easyui-combobox" name="channel5store" style="width:50px;">
+                            <option value="0">存储</option>
+                            <option value="1">上传</option>
+                        </select>
+        </td>
+        <td><?php echo $this->escape($this->picture_action . $this->unit_name); ?>单位</td>
+        <td>
+                        <select id='bit16' class="easyui-combobox" name="unit" style="width:50px;">
+                            <option value="0">秒</option>
+                            <option value="1">分钟</option>
+                        </select>
+        </td>
+        <td>
+            <input type="checkbox" name="bit17" value ="0" ><?php echo $this->escape($this->picture_action . $this->unit_name); ?>间隔</input>
+        </td>
+    </tr>
+</table>

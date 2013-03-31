@@ -1,0 +1,77 @@
+<div id="specify_server_layout" class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'center',fit:true,border:false" >
+            <form id="specify_server_form" method="post">
+            <table>
+                <tr>  
+                    <td>连接控制：</td> 
+                    <td>
+                        <select class="easyui-combobox" name="state" style="width:200px;">
+                            <option value="0">监管平台服务器</option>
+                            <option value="1">缺省监控平台服务器</option>
+                        </select>
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>监管平台鉴权码：</td>  
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="admin_code" data-options="required:true" />  
+                    </td>
+                </tr> 
+                <tr>  
+                    <td>拨号点名称：</td>  
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="dial_name" data-options="required:true" />  
+                    </td>
+                </tr> 
+                <tr>  
+                    <td>拨号用户名：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="dial_user" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>拨号密码：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="dial_pwd" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>地址：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="address" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>TCP 端口：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="tcp_port" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>UDP 端口：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="udp_port" data-options="required:true" />  
+                    </td>
+                </tr>  
+                <tr>  
+                    <td>连接到指定服务器时限：</td> 
+                    <td>
+                        <input class="easyui-validatebox" type="text" name="timeout" data-options="required:true" />  
+                    </td>
+                </tr>  
+            </table>
+            </form>
+        </div>
+        <div data-options="region:'south',border:false" style="height:40px;">
+            <table>
+                <tr>  
+                    <td>
+                        <input type="button" value="命令下发"/>  
+                    </td> 
+                    <td>
+                        <input type="button" value="取消"/>  
+                    </td>
+                </tr>  
+            </table>
+        </div>
+</div>
