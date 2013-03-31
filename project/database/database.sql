@@ -163,6 +163,7 @@ CREATE TABLE `client` (
   `remark` varchar(250) DEFAULT NULL,
   `creater_id` int(11) NOT NULL,
   `create_time` datetime NOT NULL,
+  `parent_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -275,7 +276,7 @@ CREATE TABLE `controllerlist` (
 
 LOCK TABLES `controllerlist` WRITE;
 /*!40000 ALTER TABLE `controllerlist` DISABLE KEYS */;
-INSERT INTO `controllerlist` VALUES (21201,'角色管理',21,'sysmgr','group','index',2),(32,'分组管理',3,'monmgr','group','index',2),(33,'车辆管理',3,'monmgr','vehicle','index',3),(21101,'权限管理',21,'sysmgr','perm','index',1),(31,'客户管理',3,'monmgr','client','index',1),(22,'日志管理',2,'sysmgr','log','index',2),(21,'用户管理',2,'sysmgr','user','index',1),(1,'实时监控',0,'monitor','index','index',1),(2,'系统管理',0,'sysmgr','index','index',3),(11,'车辆列表',1,'monitor','index','vehicletree',1),(12,'围栏管理',1,'monitor','index','regiontree',2),(3,'监控管理',0,'monmgr','index','index',2),(21301,'用户管理',21,'sysmgr','user','index',3),(21401,'修改密码',21,'authen','login','chgpwd',4),(31101,'客户管理',31,'monmgr','client','index',1),(31201,'车辆分组管理',32,'monmgr','group','index',2),(31301,'车辆管理',33,'monmgr','vehicle','index',3),(11101,'西部菜单',1,'monitor','index','westmenu',0),(11102,'南部菜单',1,'monitor','index','southmenu',0);
+INSERT INTO `controllerlist` VALUES (21201,'角色管理',21,'sysmgr','group','index',2),(32,'分组管理',3,'monmgr','group','index',2),(33,'车辆管理',3,'monmgr','vehicle','index',3),(21101,'权限管理',21,'sysmgr','perm','index',1),(31,'客户管理',3,'monmgr','client','index',1),(22,'日志管理',2,'sysmgr','log','index',2),(21,'用户管理',2,'sysmgr','user','index',1),(1,'实时监控',0,'monitor','index','index',1),(2,'系统管理',0,'sysmgr','index','index',3),(11,'车辆列表',1,'monitor','index','vehicletree',1),(12,'围栏管理',1,'monitor','index','regiontree',2),(3,'监控管理',0,'monmgr','index','index',2),(21301,'用户管理',21,'sysmgr','user','index',3),(21401,'修改密码',21,'authen','login','chgpwd',4),(31101,'客户管理',31,'monmgr','client','index',1),(31201,'车辆分组管理',32,'monmgr','group','index',2),(31301,'车辆管理',33,'monmgr','vehicle','index',3),(22101,'操作日志',22,'sysmgr','log','index',1);
 /*!40000 ALTER TABLE `controllerlist` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -501,7 +502,7 @@ CREATE TABLE `device_phone_param` (
   `initial_phone` varchar(45) DEFAULT NULL,
   `sms_phone` varchar(45) DEFAULT NULL,
   `alarm_phone` varchar(45) DEFAULT NULL,
-  `phone_ rstrategy` int(11) DEFAULT NULL,
+  `phone_rstrategy` int(11) DEFAULT NULL,
   `max_time_each` int(11) DEFAULT NULL,
   `max_time_month` int(11) DEFAULT NULL,
   `monitor_phone` varchar(45) DEFAULT NULL,
@@ -522,16 +523,16 @@ LOCK TABLES `device_phone_param` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `device_postion_report_param`
+-- Table structure for table `device_position_report_param`
 --
 
-DROP TABLE IF EXISTS `device_postion_report_param`;
+DROP TABLE IF EXISTS `device_position_report_param`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `device_postion_report_param` (
+CREATE TABLE `device_position_report_param` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `report_strategy` int(11) DEFAULT NULL,
-  `report_scneme` int(11) DEFAULT NULL COMMENT '位置汇报方案,0:根据 ACC 状态; 1:根据登录状态和 ACC 状态, 先判断登录状态,若登录再根据 ACC 状态\n',
+  `report_scheme` int(11) DEFAULT NULL COMMENT '位置汇报方案,0:根据 ACC 状态; 1:根据登录状态和 ACC 状态, 先判断登录状态,若登录再根据 ACC 状态\n',
   `logout_rep_interval` int(11) DEFAULT NULL COMMENT '驾驶员未登录汇报时间间隔,单位为秒(s),>0\n',
   `sleep_rep_interval` int(11) DEFAULT NULL COMMENT '休眠时汇报时间间隔,单位为秒(s),>0\n',
   `alarm_rep_interval` int(11) DEFAULT NULL COMMENT '紧急报警时汇报时间间隔,单位为秒(s),>0\n',
@@ -549,12 +550,12 @@ CREATE TABLE `device_postion_report_param` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `device_postion_report_param`
+-- Dumping data for table `device_position_report_param`
 --
 
-LOCK TABLES `device_postion_report_param` WRITE;
-/*!40000 ALTER TABLE `device_postion_report_param` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_postion_report_param` ENABLE KEYS */;
+LOCK TABLES `device_position_report_param` WRITE;
+/*!40000 ALTER TABLE `device_position_report_param` DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_position_report_param` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -701,7 +702,7 @@ CREATE TABLE `operate_log` (
   `time` datetime DEFAULT NULL,
   `content` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -710,6 +711,7 @@ CREATE TABLE `operate_log` (
 
 LOCK TABLES `operate_log` WRITE;
 /*!40000 ALTER TABLE `operate_log` DISABLE KEYS */;
+INSERT INTO `operate_log` VALUES (1,1,'10.1.1.107','2013-03-07 17:00:00','test');
 /*!40000 ALTER TABLE `operate_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -901,7 +903,7 @@ CREATE TABLE `user_vehgroup` (
   `user_id` int(11) DEFAULT NULL,
   `group_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -976,7 +978,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin',1,'2013-03-07 17:00:00','202cb962ac59075b964b07152d234b70',NULL,NULL,NULL,NULL,'1','2013-03-24 19:30:02',1364124602,0,'S05CIPV30RSGFLEGNODDBFG2R6',1,'admin','');
+INSERT INTO `users` VALUES (1,'admin',1,'2013-03-07 17:00:00','202cb962ac59075b964b07152d234b70',NULL,NULL,NULL,NULL,'1','2013-03-31 19:27:09',1364729229,0,'EGOGU1EL1MDR698P2F5N2R12O5',1,'admin','');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1138,7 +1140,7 @@ CREATE TABLE `vehicle_group` (
   `vehicle_id` int(11) NOT NULL,
   `group_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`vehicle_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1281,4 +1283,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-03-26  0:25:42
+-- Dump completed on 2013-03-31 20:13:12
