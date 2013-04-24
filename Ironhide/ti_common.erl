@@ -4,11 +4,50 @@
 
 -module(ti_common).
 
+-export([number_list_to_binary/2,
+         removemsgfromlistbyflownum/2,
+         combine_strings/1,
+         combine_strings/2]).
+
 -export([set_sockopt/3]).
 
 -export([safepeername/1, forcesafepeername/1, printsocketinfo/2, forceprintsocketinfo/2]).
 
 -export([logerror/1, logerror/2, loginfo/1, loginfo/2]).
+
+%%%
+%%% Convert number list to binary.
+%%% List    : [Num0, Num1, Num2, ...]
+%%% NumLen  : Number length
+%%% Return  : [<<Num0:NumLen>>, <<Num1:NumLen>>, <<Num2:NumLen>>, ...]
+%%%
+number_list_to_binary(List, NumLen) ->
+    [H|T] = List,
+    case T of
+        [] ->
+            <<H:NumLen>>;
+        _ ->
+            [<<H:NumLen>>|number_list_to_binary(T, NumLen)]
+    end.
+
+%%%
+%%% Remove [FlowNumN, MsgN] according to FlowNum
+%%% Msg : [[FlowNum0, Msg0], [FlowNum1, Msg1], [FlowNum2, Msg2], ...]
+%%%
+removemsgfromlistbyflownum(FlowNum, Msg) ->
+    case Msg of
+        [] ->
+            [];
+        _ ->
+            [H|T] = Msg,
+            [FN, _M] = H,
+            if
+                FN == FlowNum ->
+                    removemsgfromlistbyflownum(FlowNum, T);
+                FN =/= FlowNum ->
+                    [H|removemsgfromlistbyflownum(FlowNum, T)]
+            end
+    end.
 
 set_sockopt(LSock, CSock, Msg) ->    
     true = inet_db:register_socket(CSock, inet_tcp),    
@@ -196,6 +235,61 @@ loginfo(Format, Data) ->
             ok
     end.
 
+%%%
+%%% List must be string list.
+%%% Otherwise, an empty string will be returned.
+%%%
+combine_strings(List) ->
+    combine_strings(List, true).
+combine_strings(List, HasComma) ->
+    case List of
+        [] ->
+            "";
+        _ ->
+            Fun = fun(X) ->
+                          case is_string(X) of
+                              true ->
+                                  true;
+                              _ ->
+                                  false
+                          end
+                  end,
+            Bool = lists:all(Fun, List),
+            case Bool of
+                true ->
+                    [H|T] = List,
+                    case T of
+                        [] ->
+                            H;
+                        _ ->
+                            case HasComma of
+                                true ->
+                                    string:concat(string:concat(H, ","), combine_strings(T, HasComma));
+                                _ ->
+                                    string:concat(H, combine_strings(T, HasComma))
+                            end
+                    end;
+                _ ->
+                    ""
+            end
+    end.
+
+%%%
+%%%
+%%%
+is_string(Value) ->
+    case is_list(Value) of
+        true ->
+            Fun = fun(X) ->
+                          if X < 0 -> false; 
+                             X > 255 -> false;
+                             true -> true
+                          end
+                  end,
+            lists:all(Fun, Value);
+        _ ->
+            false
+    end.
 
 
 
