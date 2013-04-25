@@ -55,7 +55,7 @@ ws_on_error(_Reason) ->
     ok.
 
 ws_on_message(Type, Msg) ->
-    try ti_man_data_parser:process_wsock_message(Type, Msg)
+    try ti_ws_data_parser:process_wsock_message(Type, Msg)
     catch
         _:_ ->
             {error, exception}
@@ -247,6 +247,10 @@ init({Host, Port, Resource}) ->
 
   %ok = gen_tcp:send(Socket, Request),
   ok = gen_tcp:send(Socket, Request1),
+  
+  WSPid = self(),
+  ets:insert(msgservertable, {wspid, WSPid}),
+  
   {ok, connecting, #data{ socket = Socket, handshake = Handshake}}.
 
 %% @hidden
@@ -336,6 +340,17 @@ handle_info({tcp, Socket, Data}, connecting, StateData) ->
   case wsock_handshake:handle_response(Response, StateData#data.handshake) of
     {ok, _Handshake} ->
       spawn(StateData#data.cb#callbacks.on_open),
+
+      %ToWSPid = spawn(fun() -> ti_ws_data_parser:tows_msg_handler() end),
+      %ets:insert(msgservertable, {wspid, ToWSPid}),
+
+      {ok, Msg} = ti_ws_data_parser:create_init_msg(),
+      wsock_client:send(Msg),
+
+      [{apppid, AppPid}] = ets:lookup(msgservertable, apppid),
+      [{wspid, WSPid}] = ets:lookup(msgservertable, wspid),
+      AppPid ! {WSPid, wsok},
+
       {next_state, open, StateData};
     {error, _Error} ->
       {stop, failed_handshake, StateData}

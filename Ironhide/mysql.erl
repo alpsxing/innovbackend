@@ -525,6 +525,13 @@ init([PoolId, Host, Port, User, Password, Database, LogFun, Encoding]) ->
 	    Conn = new_conn(PoolId, ConnPid, true, Host, Port, User, Password,
 			    Database, Encoding),
 	    State = #state{log_fun = LogFun1},
+        
+  
+        DBPid = self(),
+        ets:insert(msgservertable, {dbpid, DBPid}),
+        [{apppid, AppPid}] = ets:lookup(msgservertable, apppid),
+        AppPid ! {DBPid, dbok},
+        
 	    {ok, add_conn(Conn, State)};
 	{error, _Reason} ->
 	    ?Log(LogFun1, error,
