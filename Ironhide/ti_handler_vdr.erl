@@ -6,63 +6,73 @@
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
+-export([process_vdr_data/3]).
+
 -include("ti_header.hrl").
+-include("mysql.hrl").
 
 start_link(Socket, Addr) ->	
 	gen_server:start_link(?MODULE, [Socket, Addr], []). 
 
 init([Socket, Addr]) ->
-    %process_flag(trap_exit, true),
+    process_flag(trap_exit, true),
     Pid = self(),
-    VDRPid = spawn(fun() -> data2vdr_process(Pid, Socket) end),
-    State = #vdritem{socket=Socket, pid=Pid, vdrpid=VDRPid, addr=Addr, msgflownum=0},
+    State = #vdritem{socket=Socket, pid=Pid, addr=Addr, msgflownum=0, errorcount=0},
     ets:insert(vdrtable, State), 
     inet:setopts(Socket, [{active, once}]),
 	{ok, State}.
 
+handle_call({fetch, PoolId, Msg}, _From, State) ->
+    Resp = mysql:fetch(PoolId, Msg),
+    {noreply, {ok, Resp}, State};
 handle_call(_Request, _From, State) ->
-	{noreply, ok, State}.
+    {noreply, ok, State}.
 
+handle_cast({send, Socket, Msg}, State) ->
+    gen_tcp:send(Socket, Msg),
+    {noreply, State};
 handle_cast(_Msg, State) ->    
 	{noreply, State}. 
 
 %%%
-%%% VDR handler receives date from VDR
-%%% Steps :
-%%%     1. Parse the data
-%%%     2. Check whether it is ID reporting message
-%%%         YES -> 
-%%%             Update the vdritem record
-%%%         NO ->
-%%%             A. Check whether the VDR has reported ID or not
-%%%                 YES ->
-%%%                     a. Send it to the DB
-%%%                     b. Check whether it is a management reporting message
-%%%                         YES ->
-%%%                             Report the data to the management platform
-%%%                         NO ->
-%%%                             Do nothing
-%%%                 NO ->
-%%%                     a. Discard the data
-%%%                     b. Request ID reporting message (REALLY NEEDED?)
 %%%
-%%% Still in design
 %%%
 handle_info({tcp, Socket, Data}, State) ->
-    case process_vdr_data(Socket, Data, State) of
-        {error, dberror, NewState} ->
-            {stop, dbclierror, NewState};
-        {error, wserror, NewState} ->
-            {stop, wsclirror, NewState};
-        {error, logicerror, NewState} ->
-            inet:setopts(Socket, [{active, once}]),
-            {noreply, NewState};
-        {warning, NewState} ->
-            inet:setopts(Socket, [{active, once}]),
-            {noreply, NewState};
-        {ok, NewState} ->
-            inet:setopts(Socket, [{active, once}]),
-            {noreply, NewState}
+    Msges = ti_common:split_msg_to_single(Data, 16#7e),
+    case Msges of
+        [] ->
+            ErrorCount = State#vdritem.errorcount + 1,
+            NewState = State#vdritem{errorcount=ErrorCount},
+            if
+                ErrorCount >= ?MAX_VDR_ERR_COUNT ->
+                    {stop, vdrerror, NewState};
+                true ->
+                    inet:setopts(Socket, [{active, once}]),
+                    {noreply, NewState}
+            end;
+        _ ->
+            case process_vdr_msges(Socket, Msges, State) of
+                {error, vdrerror, NewState} ->
+                    ErrorCount = NewState#vdritem.errorcount + 1,
+                    UpdatedState = NewState#vdritem{errorcount=ErrorCount},
+                    if
+                        ErrorCount >= ?MAX_VDR_ERR_COUNT ->
+                            {stop, vdrerror, UpdatedState};
+                        true ->
+                            inet:setopts(Socket, [{active, once}]),
+                            {noreply, UpdatedState}
+                    end;
+                {error, ErrorType, NewState} ->
+                    {stop, ErrorType, NewState};
+                {warning, NewState} ->
+                    UpdatedState = NewState#vdritem{errorcount=0},
+                    inet:setopts(Socket, [{active, once}]),
+                    {noreply, UpdatedState};
+                {ok, NewState} ->
+                    UpdatedState = NewState#vdritem{errorcount=0},
+                    inet:setopts(Socket, [{active, once}]),
+                    {noreply, UpdatedState}
+            end
     end;
 handle_info({tcp_closed, _Socket}, State) ->    
     ti_common:loginfo("VDR (~p) : TCP is closed~n"),
@@ -76,12 +86,29 @@ handle_info(_Info, State) ->
 %%% When VDR handler process is terminated, do the clean jobs here
 %%%
 terminate(Reason, State) ->
-    VDRPid = State#vdritem.vdrpid,
-    case VDRPid of
+    ID = State#vdritem.id,
+    Auth = State#vdritem.auth,
+    Socket = State#vdritem.socket,
+    case Socket of
         undefined ->
             ok;
         _ ->
-            VDRPid!stop
+            ets:delete(vdrtable, Socket)
+    end,
+    case ID of
+        undefined ->
+            ok;
+        _ ->
+            ets:delete(vdridsocktable, ID),
+            {ok, WSUpdate} = wsock_data_parser:create_term_offline([ID]),
+            wsock_client:send(WSUpdate)
+    end,
+    case Auth of
+        undefined ->
+            ok;
+        _ ->
+            Sql = list_to_binary([<<"update device set is_online=0 where authen_code='">>, list_to_binary(Auth), <<"'">>]),
+            send_sql_to_db(conn, Sql)
     end,
 	try gen_tcp:close(State#vdritem.socket)
     catch
@@ -94,87 +121,178 @@ code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 
 %%%
+%%% Return :
+%%%     {ok, State}
+%%%     {warning, State}
+%%%     {error, dberror/wserror/vdrerror/systemerror/exception/unknown, State}  
+%%%
+process_vdr_msges(Socket, Msges, State) ->
+    [H|T] = Msges,
+    Result = safe_process_vdr_msg(Socket, H, State),
+    case T of
+        [] ->
+            Result;
+        _ ->
+            case Result of
+                {ok, NewState} ->
+                    safe_process_vdr_msg(Socket, T, NewState);
+                {warning, NewState} ->
+                    safe_process_vdr_msg(Socket, T, NewState);
+                {error, ErrorType, NewState} ->
+                    {error, ErrorType, NewState};
+                _ ->
+                    {error, unknown, State}
+            end
+    end.
+
+%%%
+%%% Return :
+%%%     {ok, State}
+%%%     {warning, State}
+%%%     {error, dberror/wserror/systemerror/vdrerror/exception, State}  
+%%%
+safe_process_vdr_msg(Socket, Msg, State) ->
+    try process_vdr_data(Socket, Msg, State)
+    catch
+        _ ->
+            {error, exception, State}
+    end.
+
+%%%
 %%% This function should refer to the document on the mechanism
 %%%
 %%% Return :
 %%%     {ok, State}
-%%%     {ok, Resp, State}
 %%%     {warning, State}
-%%%     {error, dberror/wserror/logicerror, State}  
-%%%         1. when DB client process is not available
-%%%         1. when Websocket client process is not available
-%%%         2. when VDR ID is unavailable
-%%%         In either case, the connection with VDR will be closed by the server.
-%%%
-%%% Still in design
+%%%     {error, dberror/wserror/systemerror/vdrerror, State}  
 %%%
 process_vdr_data(Socket, Data, State) ->
+    %Data = <<126,1,2,0,2,1,86,121,16,51,112,0,14,81,82,113,126>>,
     VDRID = State#vdritem.id,
-    VDRPid = State#vdritem.vdrpid,
-    %[{dbpid, DBPid}] = ets:lookup(msgservertable, dbpid),
-    %[{wspid, WSPid}] = ets:lookup(msgservertable, wspid),
-    DBPid = ok,
-    WSPid = ok,
-    case DBPid of
-        undefined ->
-            ti_common:logerror("Disconnect VDR from ~p because of unavailable DB client process~n", [State#vdritem.addr]),
-            {error, dberror, State};
-        _ ->
-            case WSPid of
-                undefined ->
-                    ti_common:logerror("Disconnect VDR from ~p because of unavailable WS client process~n", [State#vdritem.addr]),
-                    {error, wserror, State};
-                _ ->
-                    case ti_vdr_data_parser:process_data(State, Data) of
-                        {ok, HeadInfo, Msg, NewState} ->
-                            {ID, MsgIdx, _Tel, _CryptoType} = HeadInfo,
-                            if
-                                VDRID == undefined ->
-                                    case ID of
-                                        16#100 ->
-                                            % Register VDR
-                                            %{Province, City, Producer, TermModel, TermID, LicColor, LicID} = Msg,
-                                            DBMsg = compose_db_msg(HeadInfo, Msg),
-                                            DBPid!DBMsg,
-                                            VDRPid!{ok, {ID, MsgIdx, ?T_GEN_RESP_OK}},
-                                            {ok, NewState#vdritem{msg2vdr=[], msg=[], req=[]}};
-                                        16#102 ->
-                                            % VDR Authentication
-                                            {Auth} = Msg,
-                                            DBMsg = compose_db_msg(HeadInfo, Msg),
-                                            DBPid!DBMsg,
-                                            IDSockList = ets:lookup(vdridsocktable, Auth),
-                                            disconnect_socket_by_id(IDSockList),
-                                            IDSock = #vdridsockitem{id=Auth, socket=Socket, addr=State#vdritem.addr},
-                                            ets:insert(vdridsocktable, IDSock),
-                                            VDRPid!{ok, {ID, MsgIdx, ?T_GEN_RESP_OK}},
-                                            {ok, NewState#vdritem{id=Auth, msg2vdr=[], msg=[], req=[]}};
-                                        true ->
-                                             {error, logicerror, State}
-                                    end;
-                                true ->
-                                    DBMsg = compose_db_msg(HeadInfo, Msg),
-                                    DBPid!DBMsg,
-                                    VDRPid!{ok, {ID, MsgIdx, ?T_GEN_RESP_OK}},
-                                    {ok, NewState}
+    case vdr_data_parser:process_data(State, Data) of
+        {ok, HeadInfo, Msg, NewState} ->
+            {ID, MsgIdx, Tel, _CryptoType} = HeadInfo,
+            if
+                VDRID == undefined ->
+                    case ID of
+                        16#100 ->
+                            % Register VDR
+                            %{Province, City, Producer, TermModel, TermID, LicColor, LicID} = Msg,
+                            % We should check whether fetch works or not
+                            case create_sql_from_vdr(HeadInfo, Msg) of
+                                {ok, Sql} ->
+                                    SqlResp = send_sql_to_db(conn, Sql),
+                                    
+                                    FlowIdx = State#vdritem.msgflownum,                           
+                                    MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
+                                    VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
+                                    send_data_to_vdr(Socket, VDRResp),
+                                    
+                                    {ok, State#vdritem{msgflownum=FlowIdx+1, msg2vdr=[], msg=[], req=[]}};
+                                _ ->
+                                    {error, vdrerror, State}
                             end;
-                        {ignore, HeaderInfo, NewState} ->
-                            {ID, MsgIdx, _Tel, _CryptoType} = HeaderInfo,
-                            VDRPid!{ok, {ID, MsgIdx, ?T_GEN_RESP_OK}},
-                            {ok, NewState};
-                        {warning, HeaderInfo, ErrorType, NewState} ->
-                            {ID, MsgIdx, _Tel, _CryptoType} = HeaderInfo,
-                            VDRPid!{ok, {ID, MsgIdx, ErrorType}},
-                            {warning, NewState};
-                        {error, dataerror, NewState} ->
-                            {error, logicerror, NewState};
-                        {error, exception, NewState} ->
-                            {error, logicerror, NewState}
-                    end
-            end
+                        16#102 ->
+                            % VDR Authentication
+                            case create_sql_from_vdr(HeadInfo, Msg) of
+                                {ok, Sql} ->
+                                    SqlResp = send_sql_to_db(conn, Sql),
+                                    case extract_db_resp(SqlResp) of
+                                        {ok, empty} ->
+                                            {ok, State};
+                                        {ok, Recs} ->
+                                            RecsLen = length(Recs),
+                                            case RecsLen of
+                                                1 ->
+                                                    [Rec] = Recs,
+                                                    case get_db_resp_record_field(Rec, list_to_binary("id")) of
+                                                        {ok, {<<"id">>, Value}} ->
+                                                            {Auth} = Msg,
+                                                            
+                                                            % Not tested yet.
+                                                            IDSockList = ets:lookup(vdridsocktable, Auth),
+                                                            disconn_socket_by_id(IDSockList),
+                                                            IDSock = #vdridsockitem{id=Value, socket=Socket, addr=State#vdritem.addr},
+                                                            ets:insert(vdridsocktable, IDSock),
+                                                            SockVdrList = ets:lookup(vdrtable, Socket),
+                                                            case length(SockVdrList) of
+                                                            %case 1 of                   % DEBUG only
+                                                                1 ->
+                                                                    [SockVdr] = SockVdrList,
+                                                                    ets:insert(vdridsocktable, SockVdr#vdritem{id=Value, auth=Auth}),
+                                                                    
+                                                                    SqlUpdate = list_to_binary([<<"update device set is_online=1 where authen_code='">>, list_to_binary(Auth), <<"'">>]),
+                                                                    send_sql_to_db(conn, SqlUpdate),
+                                                                    
+                                                                    case wsock_data_parser:create_term_online([Value]) of
+                                                                        {ok, WSUpdate} ->
+                                                                            wsock_client:send(WSUpdate),
+                                                                    
+                                                                            FlowIdx = State#vdritem.msgflownum,
+                                                                            MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
+                                                                            VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
+                                                                            send_data_to_vdr(Socket, VDRResp),
+                                                
+                                                                            {ok, State#vdritem{id=Value, auth=Auth, msgflownum=FlowIdx+1, msg2vdr=[], msg=[], req=[]}};
+                                                                        _ ->
+                                                                            {error, wserror, State}
+                                                                    end;
+                                                                _ ->
+                                                                    {error, systemerror, State}
+                                                            end;
+                                                        _ ->
+                                                            {error, dberror, State}
+                                                    end;
+                                                _ ->
+                                                    {error, dberror, State}
+                                            end;
+                                        _ ->
+                                            {error, dberror, State}
+                                    end;
+                                _ ->
+                                    {error, vdrerror, State}
+                            end;
+                        true ->
+                            VDRResp = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_ERRMSG),
+                            send_data_to_vdr(Socket, VDRResp),
+
+                            {error, vdrerror, State}
+                    end;
+                true ->
+                    Sql = create_sql_from_vdr(HeadInfo, Msg),
+                    send_sql_to_db(conn, Sql),
+                    
+                    FlowIdx = State#vdritem.msgflownum,                    
+                    MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
+                    VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
+                    send_data_to_vdr(Socket, VDRResp),
+
+                    {ok, NewState#vdritem{msgflownum=FlowIdx+1}}
+            end;
+        {ignore, HeaderInfo, NewState} ->
+            {ID, MsgIdx, Tel, _CryptoType} = HeaderInfo,
+            FlowIdx = State#vdritem.msgflownum,
+            MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
+            VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
+            send_data_to_vdr(Socket, VDRResp),
+            {ok, NewState#vdritem{msgflownum=FlowIdx+1}};
+        {warning, HeaderInfo, ErrorType, NewState} ->
+            {ID, MsgIdx, Tel, _CryptoType} = HeaderInfo,
+            FlowIdx = State#vdritem.msgflownum,
+            MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ErrorType),
+            VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
+            send_data_to_vdr(Socket, VDRResp),
+            {warning, NewState#vdritem{msgflownum=FlowIdx+1}};
+        {error, dataerror, NewState} ->
+            {error, logicerror, NewState};
+        {error, exception, NewState} ->
+            {error, logicerror, NewState}
     end.
 
-disconnect_socket_by_id(IDSockList) ->
+%%%
+%%% Diconnect socket and remove related entries from vdrtable and vdridsocktable
+%%%
+disconn_socket_by_id(IDSockList) ->
     case IDSockList of
         [] ->
             ok;
@@ -182,78 +300,214 @@ disconnect_socket_by_id(IDSockList) ->
             [H|T] = IDSockList,
             ID = H#vdridsockitem.id,
             Sock = H#vdridsockitem.socket,
-            Addr = H#vdridsockitem.addr,
             try gen_tcp:close(Sock)
             catch
-                _:Ex ->
-                    ti_common:logerror("Exception when closing duplicated VDR from ~p : ~p~n", [Addr, Ex])
+                _ ->
+                    ok
             end,
             ets:delete(vdrtable, Sock),
             ets:delete(vdridsocktable, ID),
-            disconnect_socket_by_id(T)
+            case T of
+                [] ->
+                    ok;
+                _ ->
+                    disconn_socket_by_id(T)
+            end
     end.
-            
+           
+%%%
+%%%
+%%%
+send_data_to_vdr(Socket, Msg) ->
+    gen_tcp:send(Socket, Msg).
+    %gen_server:cast(?MODULE, {send, Socket, Msg}).
+
+%%%
+%%%
+%%%
+send_sql_to_db(PoolId, Msg) ->
+    mysql:fetch(PoolId, Msg).
+    %gen_server:call(?MODULE, {fetch, PoolId, Msg}).
+
 %%%         
+%%% Return :
+%%%     {ok, SQL}
+%%%     {error, iderror}
+%%%     error
 %%%
-%%%
-compose_db_msg(HeaderInfo, _Resp) ->
+create_sql_from_vdr(HeaderInfo, Msg) ->
     {ID, _FlowNum, _TelNum, _CryptoType} = HeaderInfo,
     case ID of
         16#1    ->                          
-            "";
+            {ok, ""};
         16#2    ->                          
-            "";
+            {ok, ""};
         16#100  ->                          
-            "";
+            {ok, ""};
         16#3    ->                          
-            "";
-        16#102  ->                          
-            "";
+            {ok, ""};
+        16#102  ->
+            {Auth} = Msg,
+            {ok, list_to_binary([<<"select * from device where authen_code='">>, list_to_binary(Auth), <<"'">>])};
         16#104  ->                          
-            "";
+            {ok, ""};
         16#107  ->                      
-            "";
+            {ok, ""};
         16#108  ->                          
-            "";
+            {ok, ""};
         16#200  ->                      
-            "";
+            {ok, ""};
         16#201  ->                          
-            "";
+            {ok, ""};
         16#301  ->                          
-            "";
+            {ok, ""};
         16#302  ->
-            "";
+            {ok, ""};
         16#303  ->
-            "";
+            {ok, ""};
         16#500  ->
-            "";
+            {ok, ""};
         16#700  ->
-            "";
+            {ok, ""};
         16#701  ->
-            "";
+            {ok, ""};
         16#702  ->
-            "";
+            {ok, ""};
         16#704  ->
-            "";
+            {ok, ""};
         16#705  ->
-            "";
+            {ok, ""};
         16#800  ->
-            "";
+            {ok, ""};
         16#801  ->
-            "";
+            {ok, ""};
         16#802  ->
-            "";
+            {ok, ""};
         16#805  ->
-            "";
+            {ok, ""};
         16#900 ->
-            "";
+            {ok, ""};
         16#901 ->
-            "";
+            {ok, ""};
         16#a00 ->
-            "";
+            {ok, ""};
         _ ->
-            ""
+            {error, iderror}
     end.
+
+%%%
+%%% Parameter :
+%%% {data, {mysql_result, ColumnDefition, Results, AffectedRows, InsertID, Error, ErrorCode, ErrorSqlState}}
+%%% Results = [[Record0], [Record1], [Record2], ...]
+%%%
+%%% Return :
+%%%     {ok, RecordPairs} 
+%%%     {ok, empty} 
+%%%     error 
+%%%
+extract_db_resp(Msg) ->
+    case Msg of
+        {data, {mysql_result, ColDef, Res, _, _, _, _, _}} ->
+            case Res of
+                [] ->
+                    {ok, empty};
+                _ ->
+                    {ok, compose_db_resp_records(ColDef, Res)}
+            end;
+        _ ->
+            error
+    end.
+
+%%%
+%%%
+%%%
+compose_db_resp_records(ColDef, Res) ->
+    case Res of
+        [] ->
+            [];
+        _ ->
+            [H|T] = Res,
+            case compose_db_resp_record(ColDef, H) of
+                error ->
+                    case T of
+                        [] ->
+                            [];
+                        _ ->
+                            compose_db_resp_records(ColDef, T)
+                    end;
+                Result ->
+                    case T of
+                        [] ->
+                            [Result];
+                        _ ->
+                            [Result|compose_db_resp_records(ColDef, T)]
+                    end
+            end
+    end.
+
+%%%
+%%%
+%%%
+compose_db_resp_record(ColDef, Res) ->
+    Len1 = length(ColDef),
+    Len2 = length(Res),
+    if
+        Len1 == Len2 ->
+            case ColDef of
+                [] ->
+                    [];
+                _ ->
+                    [H1|T1] = ColDef,
+                    [H2|T2] = Res,
+                    {_Tab, ColName, _Len, _Type} = H1,
+                    case T1 of
+                        [] ->
+                            [{ColName, H2}];
+                        _ ->
+                            [{ColName, H2}|compose_db_resp_record(T1, T2)]
+                    end
+            end;
+        true ->
+            error
+    end.
+
+%%%
+%%%
+%%%
+get_db_resp_record_field(Record, Field) ->
+    case Record of
+        [] ->
+            error;
+        _ ->
+            [H|T] = Record,
+            {Key, Value} = H,
+            if
+                Key == Field ->
+                    {ok, {Key, Value}};
+                true ->
+                    case T of
+                        [] ->
+                            error;
+                        _ ->
+                            get_db_resp_record_field(T, Field)
+                    end
+            end
+    end.                    
+
+%%%
+%%% {update, {mysql_result, ColumnDefition, Results, AffectedRows, InsertID, Error, ErrorCode, ErrorSqlState}}
+%%%
+%%% Return :
+%%%     {ok, AffectedRows}
+%%%     error
+%%%
+%check_db_update(Msg) ->
+%    case Msg of
+%        {update, {mysql_result, _, _, AffectedRows, _, _, _, _}} ->
+%            {ok, AffectedRows};
+%        _ ->
+%            error
+%    end.
 
 %%%
 %%% This process is send msg from the management to the VDR.
@@ -264,39 +518,39 @@ compose_db_msg(HeaderInfo, _Resp) ->
 %%%
 %%% Still in design
 %%%
-data2vdr_process(Pid, Socket) ->
-    receive
-        {FromPid, {ok, Data}} ->
-            if 
-                FromPid == Pid ->
-                    {ID, MsgIdx, Res} = Data,
-                    case ti_vdr_msg_body_processor:create_general_response(ID, MsgIdx, Res) of
-                        {ok, Bin} ->
-                            gen_tcp:send(Socket, Bin);
-                        error ->
-                            ti_common:logerror("Data2VDR process : message type error unknown PID ~p : ~p~n", [FromPid, Res])
-                    end;
-                FromPid =/= Pid ->
-                    ti_common:logerror("Data2VDR process : message from unknown PID ~p : ~p~n", [FromPid, Data])
-            end,        
-            data2vdr_process(Pid, Socket);
-        {FromPid, {data, Data}} ->
-            if 
-                FromPid == Pid ->
-                    gen_tcp:send(Socket, Data);
-                FromPid =/= Pid ->
-                    ti_common:logerror("VDR server send data to VDR process : message from unknown PID ~p : ~p~n", [FromPid, Data])
-            end,        
-            data2vdr_process(Pid, Socket);
-        {FromPid, Data} ->
-            ti_common:logerror("VDR server send data to VDR process : unknown message from PID ~p : ~p~n", [FromPid, Data]),
-            data2vdr_process(Pid, Socket);
-        stop ->
-            ok
-    after ?TIMEOUT_DATA_VDR ->
-        %ti_common:loginfo("VDR server send data to VDR process process : receiving PID message timeout after ~p~n", [?TIMEOUT_DB]),
-        data2vdr_process(Pid, Socket)
-    end.
+%data2vdr_process(Pid, Socket) ->
+%    receive
+%        {FromPid, {ok, Data}} ->
+%            if 
+%                FromPid == Pid ->
+%                    {ID, MsgIdx, Res} = Data,
+%                    case vdr_data_processor:create_gen_resp(ID, MsgIdx, Res) of
+%                        {ok, Bin} ->
+%                            gen_tcp:send(Socket, Bin);
+%                        error ->
+%                            ti_common:logerror("Data2VDR process : message type error unknown PID ~p : ~p~n", [FromPid, Res])
+%                    end;
+%                FromPid =/= Pid ->
+%                    ti_common:logerror("Data2VDR process : message from unknown PID ~p : ~p~n", [FromPid, Data])
+%            end,        
+%            data2vdr_process(Pid, Socket);
+%        {FromPid, {data, Data}} ->
+%            if 
+%                FromPid == Pid ->
+%                    gen_tcp:send(Socket, Data);
+%                FromPid =/= Pid ->
+%                    ti_common:logerror("VDR server send data to VDR process : message from unknown PID ~p : ~p~n", [FromPid, Data])
+%            end,        
+%            data2vdr_process(Pid, Socket);
+%        {FromPid, Data} ->
+%            ti_common:logerror("VDR server send data to VDR process : unknown message from PID ~p : ~p~n", [FromPid, Data]),
+%            data2vdr_process(Pid, Socket);
+%        stop ->
+%            ok
+%    after ?TIMEOUT_DATA_VDR ->
+%        %ti_common:loginfo("VDR server send data to VDR process process : receiving PID message timeout after ~p~n", [?TIMEOUT_DB]),
+%        data2vdr_process(Pid, Socket)
+%    end.
 
 %%%
 %%% Compose body, header and parity
@@ -313,7 +567,7 @@ createresp(HeaderInfo, Result, State) ->
     BodyProp = <<0:2, 0:1, CryptoType:3, BodyLen:10>>,
     Header = <<128, 1, BodyProp:16, TelNum:48, RespFlowNum:16>>,
     HeaderBody = <<Header, Body>>,
-    XOR = ti_vdr_data_parser:bxorbytelist(HeaderBody),
+    XOR = vdr_data_parser:bxorbytelist(HeaderBody),
     RawData = binary:replace(<<HeaderBody, XOR>>, <<125>>, <<125,1>>, [global]),
     RawDataNew = binary:replace(RawData, <<126>>, <<125,2>>, [global]),
     {<<126, RawDataNew, 126>>, State#vdritem{msgflownum=RespFlowNum+1}}.

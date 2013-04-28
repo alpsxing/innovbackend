@@ -61,6 +61,16 @@ start(StartType, StartArgs) ->
             case receive_db_ws_init_msg(false, false, 0) of
                 ok ->
                     mysql:connect(conn, DB, undefined, DBUid, DBPwd, DBName, true),
+                    %Result0 = mysql:fetch(conn, <<"select * from device">>),
+                    %Result0,
+                    %Result1 = mysql:fetch(conn, <<"select * from client">>),
+                    %Result1,
+                    %Result2 = mysql:fetch(conn, <<"select * from driver">>),
+                    %Result2,
+                    %Result3 = mysql:fetch(conn, <<"update device set is_online=1 where authen_code='QR'">>),
+                    %Result3,
+                    %ti_handler_vdr:process_vdr_data(null, <<126,1,2,0,2,1,86,121,16,51,112,1,197,81,82,187,126>>, null),
+                    %ti_handler_vdr:process_vdr_data(null, <<126,1,2,0,2,1,86,121,16,51,112,0,14,81,82,113,126,126,1,2,0,2,1,86,121,16,51,112,0,14,81,82,113,126>>, null),
                     {ok, AppPid};
                 {error, ErrMsg} ->
                     {error, ErrMsg}

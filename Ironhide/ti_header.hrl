@@ -2,6 +2,8 @@
 %%%
 %%%
 
+-define(MAX_VDR_ERR_COUNT, 3).
+
 -define(DEF_PORT_DB, 3306).
 -define(DEF_PORT_VDR, 6000).
 -define(DEF_PORT_MON, 6001).
@@ -68,13 +70,14 @@
 %%% vdrpid  : VDR handler send data to VDR PID
 %%%
 -record(vdritem, {  socket=undefined, 
-                    id=undefined, 
+                    id=undefined,
+                    auth=undefined, 
                     pid=undefined, 
-                    vdrpid=undefined,
                     addr=undefined, 
                     acttime=undefined, 
                     timeout=undefined,
                     msgflownum=undefined,
+                    errorcount=undefined,
                     msg2vdr=[],
                     msg=[], 
                     req=[]
