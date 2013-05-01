@@ -108,7 +108,17 @@ forceprintsocketinfo(Socket, Msg) ->
     {ok, {Address, _Port}} = ti_common:forcesafepeername(Socket),
     ti_common:loginfo(string:concat(Msg, " IP : ~p~n"), [Address]).
 
+%%%
+%%%
+%%%
 logerror(Format) ->
+    try do_log_error(Format)
+    catch
+        _:_ ->
+            ok
+    end.
+
+do_log_error(Format) ->
     [{display, Display}] = ets:lookup(msgservertable, display),
     case Display of
         1 ->
@@ -142,6 +152,13 @@ logerror(Format) ->
 %%% Data is a list, for example : [], [Msg] or [Msg1, Msg2]
 %%%
 logerror(Format, Data) ->
+    try do_log_error(Format, Data)
+    catch
+        _:_ ->
+            ok
+    end.
+    
+do_log_error(Format, Data) ->
     [{display, Display}] = ets:lookup(msgservertable, display),
     case Display of
         1 ->
@@ -172,7 +189,17 @@ logerror(Format, Data) ->
             ok
     end.
 
+%%%
+%%%
+%%%
 loginfo(Format) ->
+    try do_log_info(Format)
+    catch
+        _:_ ->
+            ok
+    end.
+
+do_log_info(Format) ->
     [{display, Display}] = ets:lookup(msgservertable, display),
     case Display of
         1 ->
@@ -207,6 +234,13 @@ loginfo(Format) ->
 %%% Data is a list, for example : [], [Msg] or [Msg1, Msg2]
 %%%
 loginfo(Format, Data) ->
+    try do_log_info(Format, Data)
+    catch
+        _:_ ->
+            ok
+    end.
+
+do_log_info(Format, Data) ->
     [{display, Display}] = ets:lookup(msgservertable, display),
     case Display of
         1 ->
@@ -294,11 +328,41 @@ is_string(Value) ->
     end.
 
 %%%
-%%%
+%%% Msg structure :
+%%%     Flag    : == 1 byte
+%%%     Head    : 11 or 15 bytes
+%%%     Body    : >= 0 bytes
+%%%     Parity  : == 1 byte
+%%%     Flag    : == 1 byte
 %%%
 split_msg_to_single(Msg, Tag) ->
     List = binary_to_list(Msg),
-    split_list(List, Tag).
+    Len = length(List),
+    if
+        Len < 15 ->
+            [];
+        true ->
+            HeadFlag = lists:nth(1, List),
+            HeadFlag1 = lists:nth(2, List),
+            TailFlag = lists:nth(Len, List),
+            TailFlag1 = lists:nth(Len-1, List),
+            if
+                HeadFlag == 16#7e andalso TailFlag == 16#7e andalso HeadFlag1 =/= 16#7e andalso TailFlag1 =/= 16#7e ->
+                    Mid = lists:sublist(List, 2, Len-2),
+                    BinMid = list_to_binary(Mid),
+                    BinMidNew = binary:replace(BinMid, <<16#7e, 16#7e>>, <<16#ff>>, [global]),
+                    BinMidNewStr = binary_to_list(BinMidNew),
+                    Index = string:str(BinMidNewStr, binary_to_list(<<16#7e>>)),
+                    if
+                        Index == 0 ->
+                            [list_to_binary([<<16#7e>>, BinMidNew, <<16#7e>>])];
+                        true ->
+                            split_list(List, Tag)
+                    end;
+                true ->
+                    []
+            end
+    end.
 
 %%%
 %%%

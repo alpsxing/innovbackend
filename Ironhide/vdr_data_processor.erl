@@ -28,7 +28,7 @@
 
 -export([parse_msg_body/2]).
 
--export([create_final_msg/4,
+-export([create_final_msg/3,
          create_gen_resp/3, 
          create_resend_subpack_req/3,
          create_reg_resp/3,
@@ -74,11 +74,11 @@
 %%%
 %%%
 %%%
-create_final_msg(ID, Tel, MsgIdx, Data) ->
+create_final_msg(ID, MsgIdx, Data) ->
     case Data of
         {ok, Msg} ->
             Len = byte_size(Msg),
-            Header = <<ID:16, 0:2, 0:1, 0:3, Len:10, Tel:48, MsgIdx:16>>,
+            Header = <<ID:16, 0:2, 0:1, 0:3, Len:10, 0:48, MsgIdx:16>>,
             HeaderBody = list_to_binary([Header, Msg]),
             Parity = vdr_data_parser:bxorbytelist(HeaderBody),
             MsgBody = list_to_binary([HeaderBody, Parity]),
@@ -515,7 +515,7 @@ create_query_specific_term_args(Count, IDList) ->
 %%% Currently using byte_size
 %%%
 parse_query_term_args_response(Bin) ->
-    Len = length(Bin),
+    Len = byte_size(Bin),
     if
         Len =< ((2+1)*?LEN_BYTE) ->
             {error, msgerr};
@@ -536,27 +536,25 @@ parse_query_term_args_response(Bin) ->
 %%% Currently using byte_size
 %%%
 extract_term_args_resp(Bin) ->
-    Len = bit_size(Bin),
+    Len = byte_size(Bin),
     if
-        Len < ((4+1)*?LEN_BYTE) ->
+        Len < 4+1 ->
             [];
         true ->
             <<ID:?LEN_DWORD, Len:?LEN_BYTE, Tail/binary>> = Bin,
-            TailLen = bit_size(Tail),
+            TailLen = byte_size(Tail),
             if
                 Len > TailLen ->
                     [];
                 Len =< TailLen ->
-                    {Bin0, Bin1} = split_binary(Tail, Len*?LEN_BYTE),
-                    Arg =  convert_term_args_binary(ID, Len, Bin0),
+                    {Bin0, Bin1} = split_binary(Tail, Len),
+                    Arg = convert_term_args_binary(ID, Len, Bin0),
                     [Arg|extract_term_args_resp(Bin1)]
             end
     end.
 
 %%%
-%%% Len should be byte_size or bit_size????
-%%% Currently using byte_size
-%%% Has better format?
+%%%
 %%%
 convert_term_args_binary(ID, Len, Bin) ->
     if
@@ -978,15 +976,11 @@ parse_update_result_notification(Bin) ->
             <<Type:?LEN_BYTE, Res:?LEN_BYTE>> = Bin,
             if
                 Res >= 0, Res =< 2 ->
-                    case Type of
-                        0 ->
-                            {ok, {Type, Res}};
-                        12 ->
-                            {ok, {Type, Res}};
-                        52 ->
-                            {ok, {Type, Res}};
-                        _ ->
-                            {error, msgerr}
+                    if
+                        Type =/= 0 andalso Type =/= 12 andalso Type =/= 52 ->
+                            {error, msgerr};
+                        true ->
+                            {ok, {Type, Res}}
                     end;
                 true ->
                     {error, msgerr}
@@ -1018,41 +1012,138 @@ parse_position_info_report(Bin) ->
                     case AppInfo of
                         error ->
                             {error, msgerr};
-                        [] ->
-                            {ok, {H}};
+                        %[] ->
+                        %    {ok, {H}};
                         _ ->
                             {ok, {H, AppInfo}}
                     end;
-                    %<<AppID:?LEN_BYTE, AppLen:?LEN_BYTE, AppMsg/binary>> = Tail,
-                    %Len0 = byte_size(AppMsg),
-                    %if
-                    %    Len0 == AppLen ->
-                    %        {ok, {H, [AppID, AppLen, AppMsg]}};
-                    %    true ->
-                    %        {error, msgerr}
-                    %end;
                 Len == 0 ->
-                    {ok, {H}}
+                    {ok, {H, []}}
             end
     end.
 
 get_appended_info(Bin) ->
-    Len = byte_size(Bin),
+    BinLen = byte_size(Bin),
     if
-        Len < 2 ->
+        BinLen < 2 ->
             [];
         true ->
-            <<ID:?LEN_BYTE, Len:?LEN_BYTE, Tail0/binary>> = Bin,
+            <<ID:?LEN_BYTE, Len:?LEN_BYTE, Tail/binary>> = Bin,
+            ActLen = byte_size(Tail),
             case ID of
                 16#1 ->
                     if
-                        Len == 4 ->
-                            ok;
+                        Len == 4 andalso Len == ActLen ->
+                            <<Res:32>> = Tail,
+                            [ID, Res];
                         true ->
                             error
                     end;
+                16#2 ->
+                    if
+                        Len == 2 andalso Len == ActLen ->
+                            <<Res:16>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#3 ->
+                    if
+                        Len == 2 andalso Len == ActLen ->
+                            <<Res:16>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#4 ->
+                    if
+                        Len == 2 andalso Len == ActLen ->
+                            <<Res:16>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#11 ->
+                    if
+                        Len == 1 andalso Len == ActLen ->
+                            <<Res:8>> = Tail,
+                            if
+                                Res == 0 ->
+                                    [ID, Res];
+                                true ->
+                                    error
+                            end;
+                        Len == 5 andalso Len == ActLen ->
+                            <<Res1:8, Res2:32>> = Tail,
+                            if
+                                Res1 == 0 ->
+                                    error;
+                                true ->
+                                    [ID, Res1, Res2]
+                            end;
+                        true ->
+                            error
+                    end;
+                16#12 ->
+                    if
+                        Len == 6 andalso Len == ActLen ->
+                            <<Res1:8, Res2:32, Res3:8>> = Tail,
+                            [ID, Res1, Res2, Res3];
+                        true ->
+                            error
+                    end;
+                16#13 ->
+                    if
+                        Len == 7 andalso Len == ActLen ->
+                            <<Res1:32, Res2:16, Res3:8>> = Tail,
+                            [ID, Res1, Res2, Res3];
+                        true ->
+                            error
+                    end;
+                16#25 ->
+                    if
+                        Len == 4 ->
+                            <<Res:32>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#2A ->
+                    if
+                        Len == 2 ->
+                            <<Res:16>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#2B ->
+                    if
+                        Len == 4 ->
+                            <<Res1:16, Res2:16>> = Tail,
+                            [ID, Res1, Res2];
+                        true ->
+                            error
+                    end;
+                16#30 ->
+                    if
+                        Len == 1 ->
+                            <<Res:8>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#31 ->
+                    if
+                        Len == 1 ->
+                            <<Res:8>> = Tail,
+                            [ID, Res];
+                        true ->
+                            error
+                    end;
+                16#E0 ->
+                    [];
                 _ ->
-                    error
+                    []
             end
     end.
 
@@ -1117,8 +1208,14 @@ get_event_binary(Events, IDLen, LenLen) ->
 %%% 0x0301
 %%%
 parse_event_report(Bin) ->
-    <<Id:8>> = Bin,
-    {ok,{Id}}.
+    Len = byte_size(Bin),
+    if
+        Len == 1 ->
+            <<Id:8>> = <<Bin:8>>,
+            {ok,{Id}};
+        true ->
+            {error, errmsg}
+    end.
 
 %%%
 %%% 0x8302
@@ -1133,8 +1230,14 @@ create_send_question(Symbol,QueLen,Que,Answers) ->
 %%% 0x0302
 %%%
 parse_question_resp(Bin) ->
-    <<Number:16,Id:8>> = Bin,
-    {ok,{Number,Id}}.
+    Len = byte_size(Bin),
+    if
+        Len == 3 ->
+            <<Number:16,Id:8>> = <<Bin:24>>,
+            {ok,{Number,Id}};
+        true ->
+            {error, msgerr}
+    end.
 
 %%%
 %%% 0x8303
@@ -1149,8 +1252,14 @@ create_msgmenu_settings(SetType,_Count,Msgs) ->
 %%% 0x0303
 %%%
 parse_msg_proorcancel(Bin) ->
-    <<MsgType:8,POC:8>> = Bin,
-    {ok,{MsgType,POC}}.
+    Len = byte_size(Bin),
+    if
+        Len == 2 ->
+            <<MsgType:8,POC:8>> = <<Bin:16>>,
+            {ok,{MsgType,POC}};
+        true ->
+            {error, msgerr}
+    end.
 
 %%%
 %%% 0x8304

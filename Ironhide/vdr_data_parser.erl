@@ -22,7 +22,12 @@
 %%%     {ok, HeadInfo, Res, State}
 %%%     {ignore, HeadInfo, State}
 %%%     {warning, HeadInfo, ErrorType, State}
-%%%     {error, exception/dataerror, State}
+%%%     {error, exception/formaterror/parityerror, State}
+%%%
+%%%     formaterror : Head/Tail is not 16#7e
+%%%     parityerror :
+%%%     warning     : error message/not supported/fail
+%%%     ignore      : not complete message (maybe this state is not necessary)
 %%%
 process_data(State, Data) ->
     try do_process_data(State, Data)
@@ -38,7 +43,12 @@ process_data(State, Data) ->
 %%%     {ok, HeadInfo, Res, State}
 %%%     {ignore, HeadInfo, State}
 %%%     {warning, HeadInfo, ErrorType, State}
-%%%     {error, dataerror, State}
+%%%     {error, formaterror/parityerror, State}
+%%%
+%%%     formaterror : Head/Tail is not 16#7e
+%%%     parityerror :
+%%%     warning     : error message/not supported/fail
+%%%     ignore      : not complete message (maybe this state is not necessary)
 %%%
 %%% HeadInfo = {ID, MsgIdx, Tel, CryptoType}
 %%%
@@ -98,11 +108,11 @@ do_process_data(State, Data) ->
                                                         {complete, Msg, NewState} ->
                                                             case vdr_data_processor:parse_msg_body(ID, Msg) of
                                                                 {ok, Result} ->
-                                                                    {ok, ID, MsgIdx, Result, NewState};
+                                                                    {ok, HeadInfo, Result, NewState};
                                                                 {warning, msgerror} ->
-                                                                    {error, HeadInfo, ?P_GENRESP_ERRMSG, NewState};
+                                                                    {warning, HeadInfo, ?P_GENRESP_ERRMSG, NewState};
                                                                 {warning, unsupported} ->
-                                                                    {error, HeadInfo, ?P_GENRESP_NOTSUPPORT, NewState}
+                                                                    {warning, HeadInfo, ?P_GENRESP_NOTSUPPORT, NewState}
                                                             end;
                                                         {notcomplete, NewState} ->
                                                             {ignore, HeadInfo, NewState}
@@ -116,10 +126,10 @@ do_process_data(State, Data) ->
                     end;
                 CalcParity =/= Parity ->
                     ti_common:logerror("Parity error (calculated)~p:(data)~p from ~p~n", [CalcParity, Parity, State#vdritem.addr]),
-                    {error, dataerror, State}
+                    {error, parityerror, State}
             end;
         error ->
-            {error, dataerror, State}
+            {error, formaterror, State}
     end.
 
 %%%
@@ -148,21 +158,15 @@ bxorbytelist(Data) ->
 %%%
 restore_7d_7e_msg(State, Data) ->
     Len = byte_size(Data),
-    {Header, Remain} = split_binary(Data, 1),
+    {Head, Remain} = split_binary(Data, 1),
     {Body, Tail} = split_binary(Remain, Len-2),
-    case Header of
-        <<16#7e>> ->
-            case Tail of
-                <<16#7e>> ->
-                    Result = binary:replace(Body, <<125,1>>, <<125>>, [global]),
-                    FinalResult = binary:replace(Result, <<125,2>>, <<126>>, [global]),
-                    {ok, FinalResult};
-                _ ->
-                    ti_common:logerror("Wrong data tail (~p) from ~p~n",[Tail, State#vdritem.addr]),
-                    error
-            end;
-        _ ->
-            ti_common:logerror("Wrong data header (~p) from ~p~n",[Header, State#vdritem.addr]),
+    if
+        Head == <<16#7e>> andalso Tail == <<16#7e>> ->
+            Result = binary:replace(Body, <<125,1>>, <<125>>, [global]),
+            FinalResult = binary:replace(Result, <<125,2>>, <<126>>, [global]),
+            {ok, FinalResult};
+        true ->
+            ti_common:logerror("Wrong data head/tail from ~p~n: (Head)~p / (Tail)~p",[State#vdritem.addr, Head, Tail]),
             error
     end.
 

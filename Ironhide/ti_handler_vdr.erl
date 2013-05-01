@@ -37,10 +37,15 @@ handle_cast(_Msg, State) ->
 %%%
 %%%
 %%%
-handle_info({tcp, Socket, Data}, State) ->
-    Msges = ti_common:split_msg_to_single(Data, 16#7e),
-    case Msges of
+handle_info({tcp, Socket, Data}, OriginalState) ->
+    % Update active time for VDR
+    DateTime = {erlang:date(), erlang:time()},
+    State = OriginalState#vdritem{acttime=DateTime},
+    %Data = <<126,1,2,0,2,1,86,121,16,51,112,0,14,81,82,113,126>>,
+    Messages = ti_common:split_msg_to_single(Data, 16#7e),
+    case Messages of
         [] ->
+            % Max 3 vdrerrors are allowed
             ErrorCount = State#vdritem.errorcount + 1,
             NewState = State#vdritem{errorcount=ErrorCount},
             if
@@ -51,8 +56,9 @@ handle_info({tcp, Socket, Data}, State) ->
                     {noreply, NewState}
             end;
         _ ->
-            case process_vdr_msges(Socket, Msges, State) of
+            case process_vdr_msges(Socket, Messages, State) of
                 {error, vdrerror, NewState} ->
+                    % Max 3 vdrerrors are allowed
                     ErrorCount = NewState#vdritem.errorcount + 1,
                     UpdatedState = NewState#vdritem{errorcount=ErrorCount},
                     if
@@ -124,7 +130,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Return :
 %%%     {ok, State}
 %%%     {warning, State}
-%%%     {error, dberror/wserror/vdrerror/systemerror/exception/unknown, State}  
+%%%     {error, dberror/wserror/vdrerror/invaliderror/systemerror/exception/unknown, State}  
 %%%
 process_vdr_msges(Socket, Msges, State) ->
     [H|T] = Msges,
@@ -149,7 +155,7 @@ process_vdr_msges(Socket, Msges, State) ->
 %%% Return :
 %%%     {ok, State}
 %%%     {warning, State}
-%%%     {error, dberror/wserror/systemerror/vdrerror/exception, State}  
+%%%     {error, dberror/wserror/systemerror/vdrerror/invaliderror/exception, State}  
 %%%
 safe_process_vdr_msg(Socket, Msg, State) ->
     try process_vdr_data(Socket, Msg, State)
@@ -164,29 +170,28 @@ safe_process_vdr_msg(Socket, Msg, State) ->
 %%% Return :
 %%%     {ok, State}
 %%%     {warning, State}
-%%%     {error, dberror/wserror/systemerror/vdrerror, State}  
+%%%     {error, dberror/wserror/systemerror/vdrerror/invaliderror/exception, State}  
 %%%
 process_vdr_data(Socket, Data, State) ->
-    %Data = <<126,1,2,0,2,1,86,121,16,51,112,0,14,81,82,113,126>>,
     VDRID = State#vdritem.id,
     case vdr_data_parser:process_data(State, Data) of
         {ok, HeadInfo, Msg, NewState} ->
-            {ID, MsgIdx, Tel, _CryptoType} = HeadInfo,
+            {ID, MsgIdx, _Tel, _CryptoType} = HeadInfo,
             if
                 VDRID == undefined ->
                     case ID of
                         16#100 ->
                             % Register VDR
                             %{Province, City, Producer, TermModel, TermID, LicColor, LicID} = Msg,
-                            % We should check whether fetch works or not
                             case create_sql_from_vdr(HeadInfo, Msg) of
                                 {ok, Sql} ->
-                                    SqlResp = send_sql_to_db(conn, Sql),
+                                    % We should check whether fetch works or not
+                                    _SqlResp = send_sql_to_db(conn, Sql),
                                     
-                                    FlowIdx = State#vdritem.msgflownum,                           
-                                    MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
-                                    VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
-                                    send_data_to_vdr(Socket, VDRResp),
+                                    % Should check whether the registration is OK or not and send response accordingly
+                                    
+                                    FlowIdx = State#vdritem.msgflownum,
+                                    send_resp_to_vdr(16#8001, Socket, ID, MsgIdx, FlowIdx, ?T_GEN_RESP_OK),
                                     
                                     {ok, State#vdritem{msgflownum=FlowIdx+1, msg2vdr=[], msg=[], req=[]}};
                                 _ ->
@@ -199,7 +204,7 @@ process_vdr_data(Socket, Data, State) ->
                                     SqlResp = send_sql_to_db(conn, Sql),
                                     case extract_db_resp(SqlResp) of
                                         {ok, empty} ->
-                                            {ok, State};
+                                            {error, dberror, State};
                                         {ok, Recs} ->
                                             RecsLen = length(Recs),
                                             case RecsLen of
@@ -210,13 +215,12 @@ process_vdr_data(Socket, Data, State) ->
                                                             {Auth} = Msg,
                                                             
                                                             % Not tested yet.
-                                                            IDSockList = ets:lookup(vdridsocktable, Auth),
+                                                            IDSockList = ets:lookup(vdridsocktable, Value),
                                                             disconn_socket_by_id(IDSockList),
                                                             IDSock = #vdridsockitem{id=Value, socket=Socket, addr=State#vdritem.addr},
                                                             ets:insert(vdridsocktable, IDSock),
                                                             SockVdrList = ets:lookup(vdrtable, Socket),
                                                             case length(SockVdrList) of
-                                                            %case 1 of                   % DEBUG only
                                                                 1 ->
                                                                     [SockVdr] = SockVdrList,
                                                                     ets:insert(vdridsocktable, SockVdr#vdritem{id=Value, auth=Auth}),
@@ -229,64 +233,200 @@ process_vdr_data(Socket, Data, State) ->
                                                                             wsock_client:send(WSUpdate),
                                                                     
                                                                             FlowIdx = State#vdritem.msgflownum,
-                                                                            MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
-                                                                            VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
-                                                                            send_data_to_vdr(Socket, VDRResp),
+                                                                            send_resp_to_vdr(16#8001, Socket, ID, MsgIdx, FlowIdx, ?T_GEN_RESP_OK),
                                                 
                                                                             {ok, State#vdritem{id=Value, auth=Auth, msgflownum=FlowIdx+1, msg2vdr=[], msg=[], req=[]}};
                                                                         _ ->
                                                                             {error, wserror, State}
                                                                     end;
                                                                 _ ->
+                                                                    % vdrtable or vdridsocktable error
                                                                     {error, systemerror, State}
                                                             end;
                                                         _ ->
+                                                            % DB includes no "id" field in the device record
                                                             {error, dberror, State}
                                                     end;
                                                 _ ->
+                                                    % DB includes more than on records with the same authen_code 
                                                     {error, dberror, State}
                                             end;
                                         _ ->
+                                            % DB includes no record with the given authen_code
                                             {error, dberror, State}
                                     end;
                                 _ ->
-                                    {error, vdrerror, State}
+                                    % Authentication fails
+                                    {error, invaliderror, State}
                             end;
                         true ->
-                            VDRResp = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_ERRMSG),
-                            send_data_to_vdr(Socket, VDRResp),
-
-                            {error, vdrerror, State}
+                            % Unauthorized/Unregistered VDR can only accept 16#100/16#102
+                            {error, invaliderror, State}
                     end;
                 true ->
-                    Sql = create_sql_from_vdr(HeadInfo, Msg),
-                    send_sql_to_db(conn, Sql),
-                    
-                    FlowIdx = State#vdritem.msgflownum,                    
-                    MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
-                    VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
-                    send_data_to_vdr(Socket, VDRResp),
+                    case ID of
+                        16#1 ->     % VDR general response
+                            {GwFlowIdx, GwID, GwRes} = Msg,
+                            
+                            % Process reponse from VDR here
 
-                    {ok, NewState#vdritem{msgflownum=FlowIdx+1}}
+                            {ok, NewState};                      
+                        16#2 ->     % VDR pulse
+                            % Nothing to do here
+                            %{} = Msg,
+                            {ok, NewState};
+                        16#3 ->     % VDR unregistration
+                            %{} = Msg,
+                            Auth = State#vdritem.auth,
+                            ID = State#vdritem.id,
+                            Sql = create_sql_from_vdr(HeadInfo, {ID, Auth}),
+                            send_sql_to_db(conn, Sql),
+                            
+                            % return error to terminate connection with VDR
+                            {error, invaliderror, NewState};
+                        16#104 ->   % VDR parameter query
+                            {RespIdx, ActLen, List} = Msg,
+                            
+                            % Process response from VDR here
+                            
+                            {ok, NewState};
+                        16#107 ->   % VDR property query
+                            {Type, ProId, Model, TerId, ICCID, HwVerLen, HwVer, FwVerLen, FwVer, GNSS, Prop} = Msg,
+                            
+                            % Process response from VDR here
+
+                            {ok, NewState};
+                        16#108 ->
+                            {Type, Res} = Msg,
+                            
+                            % Process response from VDR here
+                            
+                            {ok, NewState};
+                        16#200 ->
+                            {H, AppInfo} = Msg,
+                            [AlarmSym, State, Lat, Lon, Height, Speed, Direction, Time] = H,
+                            
+                            FlowIdx = State#vdritem.msgflownum,
+                            send_resp_to_vdr(16#8001, Socket, ID, MsgIdx, FlowIdx, ?T_GEN_RESP_OK),
+                            
+                            {ok, NewState#vdritem{msgflownum=FlowIdx+1}};
+                        16#201 ->
+                            {RespNum, PosMsg} = Msg,
+            
+                            {ok, NewState};
+                        16#301 ->
+                            {Id} = Msg,
+                            
+                            {ok, NewState};
+                        16#302 ->
+                            {Id} = Msg,
+                            
+                            {ok, NewState};
+                        16#303 ->
+                            {MsgType,POC} = Msg,
+                            
+                            {ok, NewState};
+                        16#500 ->
+                            {FlowNum, Resp} = Msg,
+                            
+                            {ok, NewState};
+                        16#700 ->
+                            {Number,OrderWord,DB} = Msg,
+                            
+                            {ok, NewState};
+                        16#701 ->
+                            {Length,Content} = Msg,
+                            
+                            {ok, NewState};
+                        16#702 ->
+                            {DrvState,Time,IcReadResult,NameLen,N,CerNum,OrgLen,O,Validity} = Msg,
+                            
+                            {ok, NewState};
+                        16#704 ->
+                            {Len,Type,Positions} = Msg,
+                            
+                            {ok, NewState};
+                        16#705 ->
+                            {Count, Time, Data} = Msg,
+                            
+                            {ok, NewState};
+                        16#800 ->
+                            {Id,Type,Code,EICode,PipeId} = Msg,
+                            
+                            {ok, NewState};
+                        16#801 ->
+                            {Id,Type,Code,EICode,PipeId,MsgBody,Pack} = Msg,
+                            
+                            {ok, NewState};
+                        16#805 ->
+                            {RespIdx, Res, ActLen, List} = Msg,
+                            
+                            {ok, NewState};
+                        16#802 ->
+                            {FlowNum, Len, Data} = Msg,
+                            
+                            {ok, NewState};
+                        16#900 ->
+                            {Type,Con} = Msg,
+                            
+                            {ok, NewState};
+                        16#901 ->
+                            {Len,Body} = Msg,
+                            
+                            {ok, NewState};
+                        16#A00 ->
+                            {E,N} = Msg,
+                            
+                            {ok, NewState};
+                        _ ->
+                            {ok, NewState}
+                    end
+                    %Sql = create_sql_from_vdr(HeadInfo, Msg),
+                    %send_sql_to_db(conn, Sql),
+                    
+                    %FlowIdx = State#vdritem.msgflownum,
+                    %send_resp_to_vdr(16#8001, Socket, ID, MsgIdx, FlowIdx, ?T_GEN_RESP_OK),
+
+                    %{ok, NewState#vdritem{msgflownum=FlowIdx+1}}
             end;
         {ignore, HeaderInfo, NewState} ->
-            {ID, MsgIdx, Tel, _CryptoType} = HeaderInfo,
-            FlowIdx = State#vdritem.msgflownum,
-            MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ?T_GEN_RESP_OK),
-            VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
-            send_data_to_vdr(Socket, VDRResp),
+            {ID, MsgIdx, _Tel, _CryptoType} = HeaderInfo,
+            FlowIdx = NewState#vdritem.msgflownum,
+            send_resp_to_vdr(16#8001, Socket, ID, MsgIdx, FlowIdx, ?T_GEN_RESP_OK),
+            
             {ok, NewState#vdritem{msgflownum=FlowIdx+1}};
         {warning, HeaderInfo, ErrorType, NewState} ->
-            {ID, MsgIdx, Tel, _CryptoType} = HeaderInfo,
-            FlowIdx = State#vdritem.msgflownum,
-            MsgBody = vdr_data_processor:create_gen_resp(ID, MsgIdx, ErrorType),
-            VDRResp = vdr_data_processor:create_final_msg(ID, Tel, FlowIdx, MsgBody),
-            send_data_to_vdr(Socket, VDRResp),
+            {ID, MsgIdx, _Tel, _CryptoType} = HeaderInfo,
+            FlowIdx = NewState#vdritem.msgflownum,
+            send_resp_to_vdr(16#8001, Socket, ID, MsgIdx, FlowIdx, ErrorType),
+            
             {warning, NewState#vdritem{msgflownum=FlowIdx+1}};
-        {error, dataerror, NewState} ->
-            {error, logicerror, NewState};
-        {error, exception, NewState} ->
-            {error, logicerror, NewState}
+        {error, _ErrorType, NewState} ->    % exception/parityerror/formaterror
+            {error, vdrerror, NewState}
+    end.
+
+%%%
+%%% Parameters :
+%%%     Socket      : VDR Socket
+%%%     VDRMsgID    :
+%%%     VDRMsgIdx   :
+%%%     FlowIdx     : Gateway Msg Idx
+%%%     Type        :
+%%%
+%%% Type :
+%%%     ?T_GEN_RESP_OK
+%%%     ?T_GEN_RESP_FAIL
+%%%     ?T_GEN_RESP_ERRMSG
+%%%     ?T_GEN_RESP_NOTSUPPORT
+%%%
+send_resp_to_vdr(RespType, Socket, VDRMsgID, VDRMsgIdx, FlowIdx, Type) ->
+    if
+        Type =/= ?T_GEN_RESP_OK andalso Type =/= ?T_GEN_RESP_FAIL andalso Type =/= ?T_GEN_RESP_ERRMSG andalso Type =/= ?T_GEN_RESP_NOTSUPPORT ->
+            ok;
+        true ->
+            MsgBody = vdr_data_processor:create_gen_resp(VDRMsgID, VDRMsgIdx, Type),
+            VDRResp = vdr_data_processor:create_final_msg(RespType, FlowIdx, MsgBody),
+           send_data_to_vdr(Socket, VDRResp)
     end.
 
 %%%
@@ -338,25 +478,37 @@ send_sql_to_db(PoolId, Msg) ->
 create_sql_from_vdr(HeaderInfo, Msg) ->
     {ID, _FlowNum, _TelNum, _CryptoType} = HeaderInfo,
     case ID of
-        16#1    ->                          
+        16#1    ->
             {ok, ""};
         16#2    ->                          
             {ok, ""};
         16#100  ->                          
+            {Province, City, Producer, TermModel, TermID, LicColor, LicID} = Msg,
             {ok, ""};
         16#3    ->                          
-            {ok, ""};
+            {ID, Auth} = Msg,
+            {ok, list_to_binary([<<"delete from device where authen_code='">>, list_to_binary(Auth), <<"' or id='">>, list_to_binary(ID), <<"'">>])};
         16#102  ->
             {Auth} = Msg,
             {ok, list_to_binary([<<"select * from device where authen_code='">>, list_to_binary(Auth), <<"'">>])};
-        16#104  ->                          
+        16#104  ->
+            {RespIdx, ActLen, List} = Msg,
             {ok, ""};
-        16#107  ->                      
+        16#107  ->
+            {Type, ProId, Model, TerId, ICCID, HwVerLen, HwVer, FwVerLen, FwVer, GNSS, Prop} = Msg,
             {ok, ""};
-        16#108  ->                          
+        16#108  ->    
+            {Type, Res} = Msg,
             {ok, ""};
-        16#200  ->                      
-            {ok, ""};
+        16#200  ->
+            case Msg of
+                {H} ->
+                    [AlarmSym, State, Lat, Lon, Height, Speed, Direction, Time] = H,
+                    {ok, ""};
+                {H, AppInfo} ->
+                    [AlarmSym, State, Lat, Lon, Height, Speed, Direction, Time]= H,
+                    {ok, ""}
+            end;
         16#201  ->                          
             {ok, ""};
         16#301  ->                          
